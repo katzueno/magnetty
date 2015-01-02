@@ -5,8 +5,8 @@ __MACOSX
 ._*
 
 #ignore everything but the index.html
-/files/*
-!/files/index.html
+/application/files/*
+!/application/files/index.html
 
 # ignore sitemap.xml
 sitemap.xml
