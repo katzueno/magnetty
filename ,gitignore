@@ -10,3 +10,7 @@ __MACOSX
 
 # ignore sitemap.xml
 sitemap.xml
+
+# Ignore Webhook log
+hook.php
+hook.log
