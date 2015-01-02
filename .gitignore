@@ -10,6 +10,6 @@ __MACOSX
 # ignore sitemap.xml
 sitemap.xml
 
-# Ignore hook log
-hook.php
-hook.log
+# Ignore hook logs
+deployments.php
+deployments.log
