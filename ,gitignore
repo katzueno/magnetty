@@ -1,0 +1,12 @@
+# ignore system files
+.DS_Store
+thumbs.db
+__MACOSX
+._*
+
+#ignore everything but the index.html
+/files/*
+!/files/index.html
+
+# ignore sitemap.xml
+sitemap.xml
