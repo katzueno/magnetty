@@ -1,3 +1,7 @@
+#
+# .gitignore sample for concrete5 & WordPress projects
+#
+
 # ignore system files
 .DS_Store
 thumbs.db
@@ -10,8 +14,10 @@ error_log
 .ftpquota
 
 #ignore everything but the index.html
+/application/config/database.php
 /application/files/*
-/files/
+/config/site.php
+/files/*
 !/files/index.html
 /wp-content/blogs.dir/*
 /wp-content/cache/*
