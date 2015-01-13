@@ -10,7 +10,6 @@
  *  
   */
   
-  
 /**
 * The Full Server Path to git repository and web location.
 * Can be either relative or absolute path
@@ -21,7 +20,9 @@ $git_serverpath = '/var/www/vhosts/katzueno.com/events.git/steam-event.git';
 $www_serverpath = '/var/www/vhosts/katzueno.com/events.katzueno.com';
 
 /**
-* The Secret Key
+* The Secret Key so that it's a bit more secure to run this script
+* 
+* @var string
 */
 $secret_key = 'Ge9ngVRHPzfUfbRfmhWPYs2nySdKyQl2lR3ftDaisYmJGUOH5uDltc4C9zgcvV1hvv1IEdvERMP4KaPowyeejMLubGp6b30HtxpQ';
 
@@ -33,15 +34,17 @@ $secret_key = 'Ge9ngVRHPzfUfbRfmhWPYs2nySdKyQl2lR3ftDaisYmJGUOH5uDltc4C9zgcvV1hv
  *        https://[Basic Auth ID]:[Basic Auth Pass]@example.com/deployments.php?key=EnterYourSecretKeyHere
  *        (https access & Basic Auth makes it a bit more secure if your server supports it)
  */
- 
- 
+
+
 /**
 * The TimeZone format used for logging.
 * @link    http://php.net/manual/en/timezones.php
 */
 date_default_timezone_set('Asia/Tokyo');
 
+
 class Deploy {
+
   /**
   * A callback function to call after the deploy has finished.
   * 
@@ -56,7 +59,7 @@ class Deploy {
   * @var string
   */
   private $_log = 'deployments.log';
-  
+
   /**
   * The timestamp format used for logging.
   * 
@@ -64,14 +67,14 @@ class Deploy {
   * @var     string
   */
   private $_date_format = 'Y-m-d H:i:sP';
-  
+
   /**
   * The path to git
   * 
   * @var string
   */
   private $_git_bin_path = 'git';
-  
+
   /**
   * The directory where your website and git repository are located,
   * can be relative or absolute path
@@ -80,23 +83,21 @@ class Deploy {
   */
   private $_git_dir;
   private $_www_dir;
-  
-  
+
   /**
   * Sets up defaults.
   * 
   * @param  string  $directory  Directory where your website is located
   * @param  array   $data       Information about the deployment
   */
-  
   public function __construct($git_dir, $www_dir, $options = array())
   {
       // Determine the directory path
       $this->_git_dir = realpath($git_dir).DIRECTORY_SEPARATOR;
       $this->_www_dir = realpath($www_dir).DIRECTORY_SEPARATOR;
-      
+
       $available_options = array('log', 'date_format', 'git_bin_path');
-      
+
       foreach ($options as $option => $value)
       {
           if (in_array($option, $available_options))
@@ -104,11 +105,10 @@ class Deploy {
               $this->{'_'.$option} = $value;
           }
       }
-      
+
       $this->log('Attempting deployment...');
-      
   }
-  
+
   /**
   * Writes a message to the log file.
   * 
@@ -121,50 +121,50 @@ class Deploy {
       {
           // Set the name of the log file
           $filename = $this->_log;
+
           if ( ! file_exists($filename))
           {
               // Create the log file
               file_put_contents($filename, '');
+
               // Allow anyone to write to log files
               chmod($filename, 0666);
           }
+
           // Write the message into the log file
           // Format: time --- type: message
           file_put_contents($filename, date($this->_date_format).' --- '.$type.': '.$message.PHP_EOL, FILE_APPEND);
       }
   }
-  
+
   /**
   * Executes the necessary commands to deploy the website.
   */
   public function execute()
   {
-	  
       try
       {
-         // Update the local repository
+          // Update the local repository
           exec('cd ' . $this->_git_dir . ' && ' . $this->_git_bin_path . ' fetch', $output);
           $this->log('Fetching changes... '.implode(' ', $output));
-          
+
           // Checking out to web directory
 		  exec('cd ' . $this->_git_dir . ' && GIT_WORK_TREE=' . $this->_www_dir . ' ' . $this->_git_bin_path  . ' checkout -f', $output);
           $this->log('Checking out changes to www directory... '.implode(' ', $output));
-          
+
           if (is_callable($this->post_deploy))
           {
               call_user_func($this->post_deploy, $this->_data);
           }
-          
+
           $this->log('Deployment successful.');
-          
       }
-      
       catch (Exception $e)
       {
           $this->log($e, 'ERROR');
       }
-      
   }
+
 }
 
 $deploy = new Deploy($git_serverpath, $www_serverpath);
