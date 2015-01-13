@@ -19,6 +19,7 @@ error_log
 /config/site.php
 /files/*
 !/files/index.html
+!/files/.gitkeep
 /wp-content/blogs.dir/*
 /wp-content/cache/*
 /wp-content/uploads/*
