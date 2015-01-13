@@ -16,10 +16,13 @@ error_log
 #ignore everything but the index.html
 /application/config/database.php
 /application/files/*
+!/application/files/.gitkeep
+!/application/files/.gitignore
 /config/site.php
 /files/*
 !/files/index.html
 !/files/.gitkeep
+!/files/.gitignore
 /wp-content/blogs.dir/*
 /wp-content/cache/*
 /wp-content/uploads/*
@@ -28,5 +31,5 @@ error_log
 sitemap.xml
 
 # Ignore hook log
-# deployments.php
+deployments.php
 deployments.log
