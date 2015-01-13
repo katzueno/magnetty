@@ -28,5 +28,5 @@ error_log
 sitemap.xml
 
 # Ignore hook log
-deployments.php
+# deployments.php
 deployments.log
