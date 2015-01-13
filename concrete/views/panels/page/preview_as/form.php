@@ -10,23 +10,38 @@ $fdh = Core::make('helper/form/date_time'); /* @var $fdh \Concrete\Core\Form\Ser
           <?php echo t('View as User')?>
         </a>
     </header>
-    <form class="preview-panel-form form-horizontal">
+    <form class="preview-panel-form">
         <div class="ccm-panel-content-inner" id="ccm-menu-page-attributes-list">
 
-            <label class="label"><?php echo t('Date / time') ?></label>
-            <div>
+            <h5><?php echo t('Date / time') ?></h5>
+            <div class="form-group">
             	<?php echo $fdh->datetime('preview_as_user_datetime'); ?>
             </div>
 
-            <label class="label"><?php echo t('View As') ?></label>
-            <div>
+            <h5><?php echo t('View As') ?></h5>
+            <div class="form-group">
                 <div class="btn-group">
                     <button class="guest-button btn btn-default active"><?php echo t('Guest') ?></button>
                     <button class="user-button btn btn-default"><?php echo t('Site User') ?></button>
                 </div>
                 <div class="site-user" style="display:none">
-                    <label for="user" class="label"><?php echo t('User') ?></label>
-                    <input class="form-control custom-user" name="user" />
+                    <label for="user"><?php echo t('Username') ?></label>
+                    <input class="form-control input-sm custom-user" type="text" name="user" />
+                </div>
+            </div>
+            
+            <h5><?php echo t('Emulate Mobile') ?></h5>
+            <div class="form-group">
+                <div class="btn-group">
+                    <button class="disable-mobile-button btn btn-default active"><?php echo t('Disable') ?></button>
+                    <button class="enable-mobile-button btn btn-default"><?php echo t('Enable') ?></button>
+                </div>
+                <div class="resolution" style="display:none">
+                    <label for="resolution-width"><?php echo t('Width') ?></label>
+                    <div class="input-group">
+                        <input class="form-control input-sm resolution-width" type="text" name="resolution-width" />
+                        <div class="input-group-addon"><?php echo t('px') ?></div>
+                    </div>
                 </div>
             </div>
 
@@ -39,7 +54,10 @@ $fdh = Core::make('helper/form/date_time'); /* @var $fdh \Concrete\Core\Form\Ser
 	$(function() {
 		var user_input = $('div.site-user'),
 			guest_button = $('button.guest-button'),
-			user_button = $('button.user-button');
+			user_button = $('button.user-button'),
+			disable_mobile_button = $('button.disable-mobile-button'),
+			enable_mobile_button = $('button.enable-mobile-button'),
+			resolution_input = $('div.resolution');
 		// user
 		guest_button.click(function(e) {
 			if (!guest_button.hasClass('active')) {
@@ -55,6 +73,25 @@ $fdh = Core::make('helper/form/date_time'); /* @var $fdh \Concrete\Core\Form\Ser
 				user_input.slideDown();
 				guest_button.removeClass('active');
 				user_button.addClass('active');
+			}
+			e.preventDefault();
+			return false;
+		});
+		// mobile
+		disable_mobile_button.click(function(e) {
+			if (!disable_mobile_button.hasClass('active')) {
+				resolution_input.slideUp();
+				enable_mobile_button.removeClass('active');
+				disable_mobile_button.addClass('active');
+			}
+			e.preventDefault();
+			return false;
+		});
+		enable_mobile_button.click(function(e) {
+			if (!enable_mobile_button.hasClass('active')) {
+				resolution_input.slideDown();
+				disable_mobile_button.removeClass('active');
+				enable_mobile_button.addClass('active');
 			}
 			e.preventDefault();
 			return false;
