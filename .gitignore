@@ -30,6 +30,9 @@ error_log
 # ignore sitemap.xml
 sitemap.xml
 
+# Packages
+/packages/proevents/*
+
 # Ignore hook log
 deployments.php
 deployments.log
