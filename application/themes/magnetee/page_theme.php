@@ -1,5 +1,5 @@
 <?php
-namespace Aplication\Theme\Magnetee;
+namespace Application\Theme\Magnetee;
 
 class PageTheme extends \Concrete\Core\Page\Theme\Theme {
 
