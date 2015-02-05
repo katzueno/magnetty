@@ -10,7 +10,7 @@ use Loader;
 use User;
 use UserInfo;
 use Config;
-use Token
+use Token;
 use \Concrete\Package\Magnetty\Models\Magnetty;
 
 /**
@@ -56,8 +56,6 @@ class Controller extends Package
         BlockType::installBlockTypeFromPackage('magnetty_ticket', $pkg);
         BlockType::installBlockTypeFromPackage('magnetty_rsvp_list', $pkg);
 
-        $this->install_attributes($pkg);
-
 
         // install pages
         $cp = SinglePage::add('/dashboard/magnetty', $pkg);
@@ -66,7 +64,7 @@ class Controller extends Package
 
         $pes = SinglePage::add('/dashboard/magnetty/settings', $pkg);
         $pes = Page::getByPath('/dashboard/magnetty/settings');
-        $pes->setAttribute($iak, 'icon-wrench');
+        //$pes->setAttribute($iak, 'icon-wrench');
 
 
         $this->setDefaults();

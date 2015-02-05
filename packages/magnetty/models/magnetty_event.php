@@ -1,5 +1,5 @@
 <?php 
-namespace Concrete\Package\Magnetty\Models;
+namespace Concrete\Package\Magnetty\Models\MagnettyEvent;
 
 use Loader;
 use User;

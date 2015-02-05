@@ -14,7 +14,7 @@ use Package;
 use Config;
 use View;
 use \Concrete\Core\Block\BlockController;
-use \Concrete\Package\Magnetty\Model\MagnettyEvent as MagnettyEvent;
+use \Concrete\Package\Magnetty\Models\MagnettyEvent as MagnettyEvent;
 
 /**
  * Magnetty Event Ticket Block
@@ -75,8 +75,6 @@ class Controller extends BlockController {
     protected $btCacheBlockOutput = true;
     protected $btCacheBlockOutputOnPost = true;
     protected $btCacheBlockOutputForRegisteredUsers = true;
-    
-    $errorMsg = t("Oops, something is wrong with the Magnetty Ticket Block. Please tell your webmaster the following error message: ");
 
 
     /**
@@ -151,11 +149,12 @@ class Controller extends BlockController {
 
     public function view() {
 		$c = Page::getCurrentPage();
-		if (!(is_object($c)) {
+		$errorMsg = t("Oops, something is wrong with the Magnetty Ticket Block. Please tell your webmaster the following error message: ");
+		if (!is_object($c)) {
 			throw new Exception($errorMsg . t('Error at the beginning of controller view'));
 		}
 		$cp = new Permissions($c);
-		$bID = $block->getBlockID();
+		//$bID;
 		$viewMode = '';
 		
 		// Loading Magnetty Models
@@ -223,6 +222,8 @@ class Controller extends BlockController {
     }
 
     public function action_rsvp()  {
+	$errorMsg = t("Oops, something is wrong with the Magnetty Ticket Block. Please tell your webmaster the following error message: ");
+
 	// SubmitStatus: MagnettyStatus
 		// rsvp
 		// cancel
@@ -248,7 +249,6 @@ class Controller extends BlockController {
 		$u = new User();
 		$uID = $u->getUserID();
 		$c = Page::getCurrentPage();
-		$bID = $block->getBlockID();
 
 		if ($u->isRegistered() && $bID == $post['MagnettybID'] && $post['MagnettyuID'] == $uID ) {
 			// Loading Magnetty Models
@@ -293,7 +293,10 @@ class Controller extends BlockController {
 			return;
 		}
     }
+
     public function MagnettySendEmail($email)  {
+		$errorMsg = t("Oops, something is wrong with the Magnetty Ticket Block. Please tell your webmaster the following error message: ");
+
 		// Email Flag: $email
 			// RSVPed
 			// Waitlist
@@ -302,7 +305,7 @@ class Controller extends BlockController {
 			// Paid
 			// Ivalid
 
-		if ($email == 'Invalid' || !($email) {
+		if ($email == 'Invalid' || !($email)) {
 				throw new Exception($errorMsg . t('Error while sending email'));
 			return 'Error Sending an email';
 		}
@@ -316,40 +319,40 @@ class Controller extends BlockController {
 		$uID = $u->getUserID();
 		$ui = UserInfo::getByID($uID);
 		
-		if !($ui){
+		if (!$ui){
 			throw new Exception($errorMsg . t('Error while sending email at very first initial set-up.'));
 		}
 
 		$toEmail = $ui->getUserEmail();
-		if !($toEmail){
+		if (!$toEmail){
 			throw new Exception($errorMsg . t('Error while sending email and setting up the To address'));
 		}
 
-		if ($ui->getAttribute('name');) {
+		if ($ui->getAttribute('name')) {
 			$userName = $ui-> getAttribute('name');
 
-		} else if ($ui->getUserID(){
+		} else if ($ui->getUserID()) {
 			$userName = $ui-> $ui->getUserID();
 		} else {
 			$userName = $ui->getUserEmail();
 		}
-		if !($userName){
+		if (!$userName){
 			throw new Exception($errorMsg . t('Error while setting userName.'));
 		}
 		
 		$ticketName = getTicketName();
-		if !($ticketName) {
+		if (!$ticketName) {
 			throw new Exception($errorMsg . t('TicketName is not set'));
 		}
 		
 
 		$ticketURL = View::getViewPath( );
-		if !($ticketURL){
+		if (!$ticketURL){
 			throw new Exception($errorMsg . t('Error while setting ticketURL.'));
 		}
 
 		// PREPARE TO SEND EMAIL - INITIAL SETTING		
-		if !($pkgSettings['adminEmail']) {
+		if (!$pkgSettings['adminEmail']) {
 			$adminUser = UserInfo::getByID(USER_SUPER_ID);
 			if (is_object($adminUser)) {
 	        	$adminUserEmail = $adminUser->getUserEmail();
@@ -370,39 +373,39 @@ class Controller extends BlockController {
 		if ($email == 'RSVPed') {
 			
 			$emailSubject = getEmailConfirmationSubject();
-			if !($emailSubject) {
+			if (!$emailSubject) {
 				$emailSubject = t('RSVP Confirmation: ') . getTicketName();
 			}
-			if !($emailSubject) {
+			if (!$emailSubject) {
 				throw new Exception($errorMsg . t('RSVP Confirmation Email Subject is not set'));
 			}
 			
 			$emailBody = getEmailConfirmationBody();
-			if !($emailBody) {
+			if (!$emailBody) {
 				$emailBody = $packageSettings['emailConfirmationText'];
 			}
-			if !($emailBody) {
+			if (!$emailBody) {
 				throw new Exception($errorMsg . t('RSVP Confirmation Email Body is not set'));
 			}			
 			$emailTemplate = 'magnetty_event_rsvp';
 			
 		// Prepare to send Waitlist Confirmation Email.
 
-		} else ($email == 'Waitlist') {
+		} else if ($email == 'Waitlist') {
 
 			$emailSubject = getEmailWaitlistSubject();
-			if !($emailSubject) {
+			if (!$emailSubject) {
 				$emailSubject = t('Waitlist Confirmation: ') . getTicketName();
 			}
-			if !($emailSubject) {
+			if (!$emailSubject) {
 				throw new Exception($errorMsg . t('Waitlist Confirmation Email Subject is not set'));
 			}
 			
 			$emailBody = getEmailWaitlistBody();
-			if !($emailBody) {
+			if (!$emailBody) {
 				$emailBody = $packageSettings['emailWaitlistText'];
 			}
-			if !($emailBody) {
+			if (!$emailBody) {
 				throw new Exception($errorMsg . t('Confirmation Email Body is not set'));
 			}			
 			$emailTemplate = 'magnetty_event_waitlist';
@@ -410,21 +413,21 @@ class Controller extends BlockController {
 			
 		// Prepare to send Cancelled Confirmation Email.
 
-		} else ($email == 'Canceled') {
+		} else if ($email == 'Canceled') {
 
 			$emailSubject = getEmailCancellationSubject();
-			if !($emailSubject) {
+			if (!$emailSubject) {
 				$emailSubject = t('Cancel Confirmation: ') . getTicketName();
 			}
-			if !($emailSubject) {
+			if (!$emailSubject) {
 				throw new Exception($errorMsg . t('Cancel Confirmation Email Subject is not set'));
 			}
 			
 			$emailBody = getEmailCancellationBody();
-			if !($emailBody) {
+			if (!$emailBody) {
 				$emailBody = $packageSettings['emailCancelText'];
 			}
-			if !($emailBody) {
+			if (!$emailBody) {
 				throw new Exception($errorMsg . t('Cancel Email Body is not set'));
 			}			
 			$emailTemplate = 'magnetty_event_cancel';
@@ -432,21 +435,21 @@ class Controller extends BlockController {
 
 		// Prepare to send Waitlist_RSVP Confirmation Email.
 		
-		} else ($email == 'Waitlist_RSVPed') {
+		} else if ($email == 'Waitlist_RSVPed') {
 
 			$emailSubject = getEmailConfirmationSubject();
-			if !($emailSubject) {
+			if (!$emailSubject) {
 				$emailSubject = t('RSVP Confirmation: ') . getTicketName();
 			}
-			if !($emailSubject) {
+			if (!$emailSubject) {
 				throw new Exception($errorMsg . t('RSVP Confirmation Email Subject is not set'));
 			}
 			
 			$emailBody = getEmailConfirmationBody();
-			if !($emailBody) {
+			if (!$emailBody) {
 				$emailBody = $packageSettings['emailConfirmationText'];
 			}
-			if !($emailBody) {
+			if (!$emailBody) {
 				throw new Exception($errorMsg . t('RSVP Confirmation Email Body is not set'));
 			}
 
@@ -455,7 +458,7 @@ class Controller extends BlockController {
 
 		// Prepare to send Paid Confirmation Email.
 		
-		} else ($email == 'Paid') {
+		} else if ($email == 'Paid') {
 
 		// To be added
 
@@ -477,11 +480,6 @@ class Controller extends BlockController {
 		$mh->addParameter('emailBodyHTML', $emailHTMLBody);
 		$mh->load($emailTemplate);
 		@$mh->sendMail();
-    }
-    
-    function duplicate($newBID) {
-	    
 	}
-
 
 }

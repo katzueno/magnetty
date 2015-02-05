@@ -35,14 +35,15 @@ back to db.xml
 
 <div class="form-group">
 	<?php echo $form->label('canCancel', t('Cancellation Settings'))?>
-	<?php echo $form->select('canCancel', $canCancel, array('1' => t('Users can cancel RSVP and re-register'), '2' => t('Users can cancel RSVP but cannot re-register'), '3' => t('Users cannot cancel RSVP at all')), '1'); ?>
+	<?php echo $form->select(
+		'canCancel', array('1' => t('Users can cancel RSVP and re-register'), '2' => t('Users can cancel RSVP but cannot re-register'), '3' => t('Users cannot cancel RSVP at all')), $canCancel); ?>
 </div>
 </fieldset>
 
 <p><?php echo t("If you didn't fill out the following fields, the default settings will be use. Please go to [Dashboard] - [Magnetty] - [Settings] to change the default texts."); ?></p>
 
 <fieldset>
-<legend><?php echo t('RSVP Confirmation Email')?></legend>>
+<legend><?php echo t('RSVP Confirmation Email')?></legend>
 <div class="form-group">
 	<?php echo $form->label('emailConfirmationSubject', t('Subject'))?>
 	<?php echo $form->text('emailConfirmationSubject', $emailConfirmationSubject, array('style'=>'width: 60%;')); ?>
