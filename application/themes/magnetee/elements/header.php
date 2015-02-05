@@ -2,23 +2,18 @@
 <!DOCTYPE html>
 <html lang="<?php echo LANGUAGE?>">
   <head>
-    <meta charset="utf-8">
+  <?php Loader::element('header_required'); ?>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="shortcut icon" href="../assets/ico/favicon.png">
-
-    <title>SPOT - Free Bootstrap 3 Theme</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="../assets/css/bootstrap.css" rel="stylesheet">
-    <link href="../assets/css/font-awesome.min.css" rel="stylesheet">
-
+    <!-- <link href="<?php echo $this->getThemePath();
+?>/assets/css/bootstrap.css" rel="stylesheet">
+    <link href="<?php echo $this->getThemePath();
+?>/assets/css/font-awesome.min.css" rel="stylesheet">-->
     <!-- Custom styles for this template -->
-    <link href="../assets/css/main.css" rel="stylesheet">
-
-
+    <link href="<?php echo $this->getThemePath();
+?>/assets/css/main.css" rel="stylesheet">
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -26,13 +21,8 @@
     <![endif]-->
   </head>
 
-<?php Loader::element('header_required'); ?>
 
 <body>
-<?php
-defined('C5_EXECUTE') or die(_("Access Denied."));
-$this->inc('elements/header.php');
-?>
     <!-- Fixed navbar -->
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">

@@ -1,2 +1,0 @@
-Magnetee Theme
-This is concrete5's Magnetee site theme.

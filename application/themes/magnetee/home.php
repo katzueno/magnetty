@@ -73,9 +73,6 @@ $this->inc('elements/header.php');
 			</div><!-- row -->
 		</div><!-- container -->
 	</div><! -- r wrap -->
-	
-	
-	
 <?php
 $this->inc('elements/footer.php');
 ?>
