@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<schema version="0.3">
+	<table name="btMagnettyTicket">
+		<field name="bID" type="I">
+			<key />
+			<unsigned />
+		</field>
+		<field name="ticketName" type="C" size="255">
+		</field>
+		<field name="ticketNum" type="I">
+		</field>
+		<field name="ticketPrice" type="I">
+		</field>
+		<field name="canCancel" type="I">
+		</field>
+		<field name="emailConfirmationSubject" type="C" size="255">
+		</field>
+		<field name="emailConfirmationBody" type="X2">
+		</field>
+		<field name="emailCancellationSubject" type="C" size="255">
+		</field>
+		<field name="emailCancellationBody" type="X2">
+		</field>
+		<field name="emailPaymentSubject" type="C" size="255">
+		</field>
+		<field name="emailPaymentBody" type="X2">
+		</field>
+		<field name="emailWaitlistSubject" type="C" size="255">
+		</field>
+		<field name="emailWaitlistBody" type="X2">
+		</field>
+        <index name="bID">
+            <col>bID</col>
+        </index>
+	</table>
+</schema>

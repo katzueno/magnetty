@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<schema version="0.3">
+    <table name="MagnettyEventAttend">
+        <field name="ID" type="I">
+            <key/>
+            <unsigned/>
+            <autoincrement/>
+        </field>
+        <field name="cID" type="I">
+        </field>
+        <field name="bID" type="I">
+        </field>
+        <field name="uID" type="I">
+        </field>
+        <field name="rsvp" type="T"/>
+        <field name="checkin" type="T"/>
+        <field name="waitlist" type="T"/>
+        <field name="cancel" type="T"/>
+        <field name="paid" type="T"/>
+        <index name="idx_cID">
+            <col>cID</col>
+        </index>
+        <index name="idx_bID">
+            <col>bID</col>
+        </index>
+        <index name="idx_uID">
+            <col>uID</col>
+        </index>
+    </table>
+</schema>
