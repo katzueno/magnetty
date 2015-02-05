@@ -17,7 +17,7 @@ use User;
  * @copyright  2014 Katz Ueno
  * @license    concrete5 Marketplace Commercial Lisence
  */
-class MagnettyEvent
+class MagnettyEvent extends Model
 {
 
 
