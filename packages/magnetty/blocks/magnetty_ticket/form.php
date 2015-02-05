@@ -11,12 +11,12 @@ defined('C5_EXECUTE') or die("Access Denied.");
 
 <div class="form-group">
 	<?php echo $form->label('ticketNum', t('# of Tickets'))?>
-	<?php echo $form->number('ticketNum', $ticketName, array('style'=>'width: 60%;')); ?>
+	<?php echo $form->number('ticketNum', $ticketNum, array('style'=>'width: 60%;')); ?>
 </div>
 
 <div class="form-group">
 	<?php echo $form->label('ticketPrice', t('Price'))?>
-	<?php echo $form->text('ticketPrice', $ticketName, array('style'=>'width: 60%;')); ?>
+	<?php echo $form->text('ticketPrice', $ticketPrice, array('style'=>'width: 60%;')); ?>
 </div>
 
 <?php /*

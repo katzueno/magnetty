@@ -1,6 +1,7 @@
 <?php 
 namespace Concrete\Package\Magnetty\Models;
 
+use \Concrete\Core\Legacy\Model;
 use Loader;
 use User;
 
@@ -58,19 +59,15 @@ class MagnettyEvent extends Model {
     {
         $db = Loader::db();
         $query = $db->GetRow('SELECT * from MagnettyEventAttend WHERE bID = ? AND uID = ?', array($bID, $uID));
-        $this->set('rows', $query);
         return $query;
     }
 
     public static function getRSVPnum($bID)
     {
         $db = Loader::db();
-        $query = $db->GetAll('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND rsvp IS NOT NULL', array($bID));
-        $count1 = mysqli_num_rows($query);
-        new $query;
-        $query = $db->GetAll('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND cancel IS NOT NULL', array($bID));
-        $count2 = mysqli_num_rows($query);
-        $count = $count1 - $count2;
+        $count1 = $db->GetOne('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND rsvp IS NOT NULL', array($bID));
+        $count2 = $db->GetOne('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND cancel IS NOT NULL', array($bID));
+        $count = $count1-$count2;
         return $count;
     }
 
@@ -78,8 +75,7 @@ class MagnettyEvent extends Model {
     {
         $db = Loader::db();
         $query = $db->GetAll('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND cancel IS NOT NULL', array($bID));
-        $count = mysqli_num_rows($query);
-        return $count;
+        return $query;
     }
 
     public static function addRSVP($cID, $bID, $uID)

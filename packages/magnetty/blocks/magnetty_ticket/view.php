@@ -25,7 +25,7 @@ $c = Page::getCurrentPage();
 	
 <h1>Debug</h1>
 <p># of Tickets Available: <?php echo $magnettyTicketNum; ?></p>
-<p># of Tickets RSVPed<?php echo $magnettyTicketCount; ?></p>
+<p># of Tickets RSVPed: <?php echo $magnettyTicketCount; ?></p>
 <p>Current Status: <?php echo $viewMode; ?></p>
 <p>Cancel Availability:<?php echo $canCancel;?></p>
 
@@ -81,7 +81,7 @@ if ($viewMode == 'Unregistered') {
 /*
  * When RSVPed User
  */
-	else if (($viewMode == 'RSVPed') && (getCanCancel()=='3') { ?>
+	else if (($viewMode == 'RSVPed') && (getCanCancel()=='3')) { ?>
 <p>
 	<button type="submit" class="btn btn-danger btn-block" >
 		<strong><?php echo t('お申込み済みです') ?></strong>
@@ -111,7 +111,7 @@ if ($viewMode == 'Unregistered') {
 /*
  * When RSVPed & Paid User who cannot cancel
  */
-	else if (($viewMode == 'Paid') && (getCanCancel()=='3') { ?>
+	else if (($viewMode == 'Paid') && (getCanCancel()=='3')) { ?>
 <p>
 	<button type="submit" class="btn btn-danger btn-block" >
 		<strong><?php echo t('お支払い済みです') ?></strong>
@@ -121,7 +121,7 @@ if ($viewMode == 'Unregistered') {
 /*
  * When Cancelled user and they can re-register
  */
-	else if  ($viewMode == 'Cancelled') && (getCanCancel()=='1') { ?>
+	else if  (($viewMode == 'Cancelled') && (getCanCancel()=='1')) { ?>
 <p>
 	<form method="post" action="<?php echo $this->action('rsvp'); ?>" onSubmit="return checkSubmit()">
 		<button type="submit" class="btn btn-danger btn-block" onclick="$(this).closest('form').submit();return false" >
@@ -142,10 +142,12 @@ if ($viewMode == 'Unregistered') {
  * When Cancelled user and they are full
  */
 	else if (
-		($viewMode == 'Cancelled')  && !(getCanCancel()=='1') ||
-		($viewMode == 'Cancelled_Full') { ?>
+		(($viewMode == 'Cancelled')  && !(getCanCancel()=='1')) ||
+		($viewMode == 'Cancelled_Full')
+		) { ?>
 <p>
 	<button type="submit" class="btn btn-danger btn-block" >
 		<strong><?php echo t('キャンセル済み') ?></strong>
 	</button>
 </p>
+<?php }?>

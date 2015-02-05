@@ -160,7 +160,7 @@ class Controller extends BlockController {
 		// Loading Magnetty Models
 		$Magnetty = new MagnettyEvent ();
 		// Get the max number of tickets
-		$magnettyTicketNum = getTicketNum();
+		$magnettyTicketNum = $this->getTicketNum();
 		// Get the current number of tickets RSVPed
 		$magnettyTicketCount = $Magnetty->getRSVPnum($bID);
 
@@ -169,8 +169,6 @@ class Controller extends BlockController {
 		$canViewToolbar = (isset($cp) && is_object($cp) && $cp->canViewToolbar());
 		if ($canViewToolbar) {
 			$viewMode = 'Admin';				
-
-
 
 		} else if ($u->isRegistered()) {
 			$viewMode = 'Registered';
@@ -213,7 +211,7 @@ class Controller extends BlockController {
 			
 		}
 			
-			if (!$viewMode) {
+			if (!isset($viewMode)) {
 				throw new Exception($errorMsg . t('Error while setting viewMode'));
 			}
 
@@ -257,7 +255,7 @@ class Controller extends BlockController {
 			if ($post['MagnettyStatus']=='rsvp') {
 
 				// Get the max number of tickets
-				$magnettyTicketNum = getTicketNum();
+				$magnettyTicketNum = $this->getTicketNum();
 				// Get the current number of tickets RSVPed
 				$magnettyTicketCount = $Magnetty->getRSVPnum($bID);
 
