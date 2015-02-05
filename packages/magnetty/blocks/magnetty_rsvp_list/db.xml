@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<schema version="0.3">
+	<table name="btMagnettyRSVPList">
+		<field name="bID" type="I">
+			<key />
+			<unsigned />
+		</field>
+		<field name="ticketbID" type="I">
+		</field>
+		<field name="linkProfile" type="I1">
+            <unsigned />
+            <notnull />
+            <default value="0" />
+        </field>
+		<field name="showAvatar" type="I1">
+            <unsigned />
+            <notnull />
+            <default value="0" />
+        </field>
+        <index name="bID">
+            <col>bID</col>
+        </index>
+        <index name="ticketbID">
+            <col>ticketbID</col>
+        </index>
+	</table>
+</schema>
