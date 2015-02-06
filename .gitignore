@@ -31,8 +31,10 @@ error_log
 sitemap.xml
 
 # Packages
-/packages/proevents/*
+packages/proevents/*
+packages/email_list_signup/*
 
 # Ignore hook log
 deployments.php
 deployments.log
+
