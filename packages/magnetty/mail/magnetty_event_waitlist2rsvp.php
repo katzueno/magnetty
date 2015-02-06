@@ -10,7 +10,7 @@ If you receive this email by mistake, please contact the webmaster.
 $emailBodyAddition = t("
 Congratulations!
 
-Someone has cancelled her/his ticket, and you've got the ticket.
+Someone has cancelled her/his ticket, and you've got the ticket!
 We're looking forward to seeing you.
 
 If you decided not to attend the event, please make sure to cancel your RSVP, so that other people can get your ticket.
@@ -30,8 +30,7 @@ ob_start();
 <header><h2><?php echo h($emailSubject);?></h2></header>
 
 <article>
-<p><strong><?php echo t('Ticket Name') . ': <a href="' . $ticketURL . ' target="_blank">'. $ticketName . '</a>'  ;>
-	?></strong></p>
+<p><strong><?php echo t('Ticket Name') . ': <a href="' . $ticketURL . ' target="_blank">'. $ticketName . '</a>';?></strong></p>
 <p>&nbsp;</p>
 <p><strong><?php t("Dear %s", $userName);?></strong></p>
 <p>&nbsp;</p>

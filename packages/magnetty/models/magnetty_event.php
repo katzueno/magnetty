@@ -78,10 +78,9 @@ class MagnettyEvent extends Model {
         return $query;
     }
 
-    public static function addRSVP($cID, $bID, $uID)
+    public static function addRSVP($cID, $bID, $uID, $date)
     {
         $db = Loader::db();
-		$date = date('YYYY-MM-DD HH:MM:SS');
         $args = array(
             'cID' => $cID,
             'bID' => $bID,
@@ -97,10 +96,9 @@ class MagnettyEvent extends Model {
         return;
     }
 
-    public static function addWaitlist($cID, $bID, $uID)
+    public static function addWaitlist($cID, $bID, $uID, $date)
     {
         $db = Loader::db();
-        $date = date('YYYY-MM-DD HH:MM:SS');
         $args = array(
             'cID' => $cID,
             'bID' => $bID,
@@ -116,34 +114,39 @@ class MagnettyEvent extends Model {
         return;
     }
 
-    public static function checkinRSVP($bID, $uID)
+    public static function checkinRSVP($bID, $uID, $date)
     {
         $db = Loader::db();
-        $date = date('YYYY-MM-DD HH:MM:SS');
-        $db-> Execute('UPDATE MagnettyEventAttend SET checkin = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
+        $db-> update('MagnettyEventAttend SET checkin = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
         return;
     }
 
-    public static function paidRSVP($bID, $uID)
+    public static function paidRSVP($bID, $uID, $date)
     {
         $db = Loader::db();
-        $date = date('YYYY-MM-DD HH:MM:SS');
-        $db-> Execute('UPDATE MagnettyEventAttend SET paid = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
+        //$db-> update($table, $data, array('id' => 17));
+        $db-> update('MagnettyEventAttend SET paid = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
         return;
     }
 
-    public static function cancelRSVP($bID, $uID)
+    public static function cancelRSVP($bID, $uID, $date)
     {
         $db = Loader::db();
-        $date = date('YYYY-MM-DD HH:MM:SS');
-        $db-> Execute('UPDATE MagnettyEventAttend SET cancel = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
+        $data = array (
+	        'cancel' => $date,
+        );
+        $where = array (
+	        'bID' =>$bID,
+	        'uID' =>$uID,
+        );
+        $db->update('MagnettyEventAttend', $data, $where);
+        //$db-> update('MagnettyEventAttend SET cancel = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
         return;
     }
 
-    public static function recoverRSVP($bID, $uID)
+    public static function recoverRSVP($bID, $uID, $date)
     {
         $db = Loader::db();
-        $date = date('YYYY-MM-DD HH:MM:SS');
         $null = '';
         $db-> Execute('UPDATE MagnettyEventAttend SET cancel = ? AND rsvp = ? WHERE bID = ? AND uID = ?', array($null, $date, $bID, $uID));
         return;

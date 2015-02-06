@@ -17,8 +17,7 @@ ob_start();
 <header><h2><?php echo h($emailSubject);?></h2></header>
 
 <article>
-<p><strong><?php echo t('Ticket Name') . ': <a href="' . $ticketURL . ' target="_blank">'. $ticketName . '</a>'  ;>
-	?></strong></p>
+<p><strong><?php echo t('Ticket Name') . ': <a href="' . $ticketURL . ' target="_blank">'. $ticketName . '</a>';?></strong></p>
 <p>&nbsp;</p>
 <p><strong><?php t("Dear %s", $userName);?></strong></p>
 <p>&nbsp;</p>

@@ -22,12 +22,14 @@ $c = Page::getCurrentPage();
 	// 3-> Users cannot cancel RSVP at all
 
 ?>
-	
+
+<?php if ($debugMode) {?>	
 <h1>Debug</h1>
-<p># of Tickets Available: <?php echo $magnettyTicketNum; ?></p>
-<p># of Tickets RSVPed: <?php echo $magnettyTicketCount; ?></p>
-<p>Current Status: <?php echo $viewMode; ?></p>
-<p>Cancel Availability:<?php echo $canCancel;?></p>
+<p># of Tickets Available: <?php var_dump($magnettyTicketNum); ?></p>
+<p># of Tickets RSVPed: <?php var_dump($magnettyTicketCount); ?></p>
+<p>Current Status: <?php var_dump($viewMode); ?></p>
+<p>Cancel Availability:<?php var_dump($canCancel);?></p>
+<?php } ?>
 
 <?php 
 /*
@@ -35,13 +37,13 @@ $c = Page::getCurrentPage();
  */
 if ($viewMode == 'Unregistered') {
 ?>
-<p><button type="button" class="btn btn-danger btn-block" href="<?php echo URL::to('/login', 'forward') . $c->getCollectionID() . '/';?>"><strong><?php echo t('ログイン or 新規会員登録') ?></strong></button>
+<p><a type="button" class="btn btn-danger btn-block" href="<?php echo URL::to('/login', 'forward') . '/' . $c->getCollectionID();?>"><strong><?php echo t('ログイン or 新規会員登録') ?></strong></a>
 </p>
 <?php }
 /*
  * When Registered User
  */
-	else if  ($viewMode == 'Registered') { ?>
+	else if  (($viewMode == 'Registered') || ($viewMode == 'Admin')) { ?>
 <p>
 	<form method="post" action="<?php echo $this->action('rsvp'); ?>" onSubmit="return checkSubmit()">
 		<button type="submit" class="btn btn-danger btn-block" onclick="$(this).closest('form').submit();return false" >
@@ -53,7 +55,7 @@ if ($viewMode == 'Unregistered') {
 	</form>
 	<script type="text/javascript">
 	function checkSubmit() {
-		return confirm("<?php t('このイベントに参加申し込みをしますか？');?>");
+		return confirm("<?php echo t('このイベントに参加申し込みをしますか？');?>");
 	}
 	</script>
 </p>
@@ -61,19 +63,19 @@ if ($viewMode == 'Unregistered') {
 /*
  * When RSVPed User who can cancel
  */
-	else if  (($viewMode == 'RSVPed') && !(getCanCancel()=='3')) { ?>
+	else if  (($viewMode == 'RSVPed') && !($canCancel=='3')) { ?>
 <p>
-	<form method="post" action="<?php echo $this->action('cancel'); ?>" onSubmit="return checkSubmit()">
+	<form method="post" action="<?php echo $this->action('rsvp'); ?>" onSubmit="return checkSubmit()">
 		<button type="submit" class="btn btn-danger btn-block" onclick="$(this).closest('form').submit();return false" >
 			<strong><?php echo t('申込をキャンセルする') ?></strong>
 		</button>
 		<input type="hidden" name="MagnettybID" value="<?php echo $bID;?>" />
 		<input type="hidden" name="MagnettyuID" value="<?php echo $uID;?>" />
-		<input type="hidden" name="MagnettyStatus" value="rsvp" />
+		<input type="hidden" name="MagnettyStatus" value="cancel" />
 	</form>
 	<script type="text/javascript">
 	function checkSubmit() {
-		return confirm("<?php t('このイベントに参加申し込みをキャンセルしますか？');?>");
+		return confirm("<?php echo t('このイベントに参加申し込みをキャンセルしますか？');?>");
 	}
 	</script>
 </p>
@@ -81,7 +83,7 @@ if ($viewMode == 'Unregistered') {
 /*
  * When RSVPed User
  */
-	else if (($viewMode == 'RSVPed') && (getCanCancel()=='3')) { ?>
+	else if (($viewMode == 'RSVPed') && ($canCancel=='3')) { ?>
 <p>
 	<button type="submit" class="btn btn-danger btn-block" >
 		<strong><?php echo t('お申込み済みです') ?></strong>
@@ -91,19 +93,19 @@ if ($viewMode == 'Unregistered') {
 /*
  * When RSVPed & Paid User who can cancel
  */
-	else if  (($viewMode == 'Paid') && !(getCanCancel()=='3')) { ?>
+	else if  (($viewMode == 'Paid') && !($canCancel=='3')) { ?>
 <p>
-	<form method="post" action="<?php echo $this->action('cancel'); ?>" onSubmit="return checkSubmit()">
+	<form method="post" action="<?php echo $this->action('rsvp'); ?>" onSubmit="return checkSubmit()">
 		<button type="submit" class="btn btn-danger btn-block" onclick="$(this).closest('form').submit();return false" >
 			<strong><?php echo t('お支払い済み | 申込をキャンセルする') ?></strong>
 		</button>
 		<input type="hidden" name="MagnettybID" value="<?php echo $bID;?>" />
 		<input type="hidden" name="MagnettyuID" value="<?php echo $uID;?>" />
-		<input type="hidden" name="MagnettyStatus" value="rsvp" />
+		<input type="hidden" name="MagnettyStatus" value="cancel" />
 	</form>
 	<script type="text/javascript">
 	function checkSubmit() {
-		return confirm("<?php t('このイベントに参加申し込みをキャンセルしますか？お支払い済みのイベントの返金についてはイベント事の返金ルールを参照ください。');?>");
+		return confirm("<?php echo t('このイベントに参加申し込みをキャンセルしますか？お支払い済みのイベントの返金についてはイベント事の返金ルールを参照ください。');?>");
 	}
 	</script>
 </p>
@@ -111,7 +113,7 @@ if ($viewMode == 'Unregistered') {
 /*
  * When RSVPed & Paid User who cannot cancel
  */
-	else if (($viewMode == 'Paid') && (getCanCancel()=='3')) { ?>
+	else if (($viewMode == 'Paid') && ($canCancel=='3')) { ?>
 <p>
 	<button type="submit" class="btn btn-danger btn-block" >
 		<strong><?php echo t('お支払い済みです') ?></strong>
@@ -121,7 +123,7 @@ if ($viewMode == 'Unregistered') {
 /*
  * When Cancelled user and they can re-register
  */
-	else if  (($viewMode == 'Cancelled') && (getCanCancel()=='1')) { ?>
+	else if  (($viewMode == 'Cancelled') && ($canCancel=='1')) { ?>
 <p>
 	<form method="post" action="<?php echo $this->action('rsvp'); ?>" onSubmit="return checkSubmit()">
 		<button type="submit" class="btn btn-danger btn-block" onclick="$(this).closest('form').submit();return false" >
@@ -133,7 +135,7 @@ if ($viewMode == 'Unregistered') {
 	</form>
 	<script type="text/javascript">
 	function checkSubmit() {
-		return confirm("<?php t('このイベントに再び参加申し込みをしますか？');?>");
+		return confirm("<?php echo t('このイベントに再び参加申し込みをしますか？');?>");
 	}
 	</script>
 </p>
@@ -142,7 +144,7 @@ if ($viewMode == 'Unregistered') {
  * When Cancelled user and they are full
  */
 	else if (
-		(($viewMode == 'Cancelled')  && !(getCanCancel()=='1')) ||
+		(($viewMode == 'Cancelled')  && !($canCancel=='1')) ||
 		($viewMode == 'Cancelled_Full')
 		) { ?>
 <p>

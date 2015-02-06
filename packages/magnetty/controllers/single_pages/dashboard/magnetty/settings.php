@@ -4,23 +4,9 @@ namespace Concrete\Package\Magnetty\Controller\SinglePage\Dashboard\Magnetty;
 use \Concrete\Core\Page\Controller\DashboardPageController;
 use Package;
 
-class Settings extends DashboardPageController
-{
+class Settings extends DashboardPageController {
 
-    public $helpers = array('html', 'form');
-
-    public function view()
-    {
-        /*$db = Loader::db();
-        $r = $db->execute("SELECT * FROM MagnettyEventConfig");
-        while ($row = $r->fetchrow()) {
-            $this->set('adminGroups', $row['adminGroups']);
-            $this->set('allowCancel', $row['allowCancel']);
-            $this->set('emailConfirmationText', $row['emailConfirmationText']);
-            $this->set('emailCancelText', $row['emailCancelText']);
-        }
-        $this->loadPageTypes();*/
-
+    public function view() {
 		
         $pkg = Package::getByHandle('magnetty');
         $adminEmail = $pkg->getConfig()->get('magnetty.adminEmail');
@@ -44,7 +30,7 @@ class Settings extends DashboardPageController
 
     public function save_settings()
     {
-        if ($this->token->validate("save_settings")) {
+        //if ($this->token->validate("save_settings")) {
             if ($this->isPost()) {
 		        $adminEmail = $this->post('adminEmail');
 		        $allowCancel = $this->post('allowCancel');
@@ -58,8 +44,8 @@ class Settings extends DashboardPageController
                 $pkg->getConfig()->save('magnetty.emailCancelText', $emailCancelText);
                 $this->redirect('/dashboard/magnetty/settings','updated');
             }
-        } else {
-            $this->set('error', array($this->token->getErrorMessage()));
+        // } else {
+        //     $this->set('error', array($this->token->getErrorMessage()));
         }
     }
 

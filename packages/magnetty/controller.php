@@ -1,7 +1,6 @@
 <?php 
 namespace Concrete\Package\Magnetty;
 
-use Package;
 use BlockType;
 use SinglePage;
 use Page;
@@ -10,7 +9,6 @@ use Loader;
 use User;
 use UserInfo;
 use Config;
-use Token;
 use \Concrete\Package\Magnetty\Models\Magnetty;
 
 /**
@@ -30,8 +28,7 @@ use \Concrete\Package\Magnetty\Models\Magnetty;
  * @version    0.0.1
  */
 
-class Controller extends Package
-{
+class Controller extends \Concrete\Core\Package\Package {
 
     protected $pkgHandle = 'magnetty';
     protected $appVersionRequired = '5.7.2';

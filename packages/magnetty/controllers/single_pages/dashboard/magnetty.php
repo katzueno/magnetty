@@ -1,15 +1,13 @@
 <?php 
-namespace Concrete\Package\Proevents\Controller\SinglePage\Dashboard;
+namespace Concrete\Package\Magnetty\Controller\SinglePage\Dashboard;
 
 use \Concrete\Core\Page\Controller\DashboardPageController;
-use Loader;
 
-class Proevents extends DashboardPageController
-{
+class MagnettyEvent extends DashboardPageController {
 
     public function view()
     {
-        $this->redirect('/dashboard/magnetty/settings/');
+        $this->redirect('/dashboard/magnetty/settings');
     }
 
 }

@@ -2,16 +2,10 @@
 defined('C5_EXECUTE') or die(_("Access Denied."));
 ?>
 
-<?php  echo Loader::helper('concrete/dashboard')->getDashboardPaneHeaderWrapper(
-    t('Magnetty Settings'),
-    false,
-    false,
-    false
-); ?>
+<form method="post" id="site-form" action="<?php echo $this->action('save_settings'); ?>"  enctype="multipart/form-data">
 
-<div class="ccm-pane-body ccm-ui">
-
-    <form method="post" id="settings" action="<?php  echo $this->controller->token->output('save_settings'); ?>">
+    <?php //echo $this->controller->token->output('save_settings');?>
+    
         <h4><?php  echo t('Configuration of Magnetty Event Attend') ?></h4>
         <br/>
 
@@ -53,8 +47,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 </div>
     <div class="ccm-dashboard-form-actions-wrapper">
     <div class="ccm-dashboard-form-actions">
-        <button class="pull-right btn btn-success" type="submit" ><?php　echo t('Save')?></button>
+        <button class="pull-right btn btn-success" type="submit" ><?php echo t('Save'); ?></button>
     </div>
     </div>
-        </form>
-</div>
+</form>
