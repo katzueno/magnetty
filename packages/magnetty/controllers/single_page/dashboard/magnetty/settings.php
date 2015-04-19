@@ -17,9 +17,9 @@ class Settings extends DashboardPageController {
         $emailCancelText = $pkg->getConfig()->get('magnetty.emailCancelText');
 		$this->set('adminEmail', $adminEmail);
 		$this->set('allowCancel', $allowCancel);
-		$this->set('emailWaitlistText', $emailConfirmationText);
+		$this->set('emailWaitlistText', $emailWaitlistText);
 		$this->set('emailConfirmationText', $emailConfirmationText);
-		$this->set('adminemailCancelText', $emailCancelText);
+		$this->set('emailCancelText', $emailCancelText);
 
     }
 
@@ -36,6 +36,7 @@ class Settings extends DashboardPageController {
 		        $adminEmail = $this->post('adminEmail');
 		        $allowCancel = $this->post('allowCancel');
 		        $emailConfirmationText = $this->post('emailConfirmationText');
+		        $emailWaitlistText = $this->post('emailWaitlistText');
 		        $emailCancelText = $this->post('emailCancelText');
                 $pkg = Package::getByHandle('magnetty');
                 $pkg->getConfig()->save('magnetty.adminEmail', $adminEmail);

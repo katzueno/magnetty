@@ -5,7 +5,7 @@ use BlockType;
 use SinglePage;
 use Page;
 use View;
-use Loader;
+use Database;
 use User;
 use UserInfo;
 use Config;
@@ -61,6 +61,7 @@ class Controller extends \Concrete\Core\Package\Package {
 
         $sp = SinglePage::add('/dashboard/magnetty/settings', $pkg);
         $sp = Page::getByPath('/dashboard/magnetty/settings');
+        $sp->update(array('cName' => t('Setting'), 'cDescription' => t('Set the default config for Magnetty Event')));
 
 		$adminUser = UserInfo::getByID(USER_SUPER_ID);
 		if (is_object($adminUser)) {
@@ -84,9 +85,8 @@ class Controller extends \Concrete\Core\Package\Package {
     public function uninstall()
     {
 
-        $db= Loader::db();
-        $db->Execute("DROP TABLE IF EXISTS MagnettyEventAttend, btMagnettyRSVPList, btMagnettyTicket;");
-        $sp = 
+        $db = Database::get();
+        $db->Execute("DROP TABLE IF EXISTS MagnettyEventAttend;");
 
         parent::uninstall();
     }
@@ -94,7 +94,6 @@ class Controller extends \Concrete\Core\Package\Package {
     public function upgrade()
     {
 
-        $db = Loader::db();
         $pkg = Package::getByHandle('magnetty');
         parent::upgrade();
 

@@ -44,7 +44,6 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             <?php   echo $form->textarea('emailCancelText', $emailCancelText); ?>
         </div>
 
-</div>
     <div class="ccm-dashboard-form-actions-wrapper">
     <div class="ccm-dashboard-form-actions">
         <button class="pull-right btn btn-success" type="submit" ><?php echo t('Save'); ?></button>
