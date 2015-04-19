@@ -33,8 +33,8 @@ sitemap.xml
 # Packages
 packages/proevents/*
 packages/email_list_signup/*
+packages/entity_example/*
 
 # Ignore hook log
 deployments.php
 deployments.log
-
