@@ -65,8 +65,11 @@ class MagnettyEvent extends Model {
     public static function getRSVPnum($bID)
     {
         $db = Loader::db();
+        $nulldate = '0000-00-00 00:00:00';
         $count1 = $db->GetOne('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND rsvp IS NOT NULL', array($bID));
+        $count1 = intval($count1);
         $count2 = $db->GetOne('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND cancel IS NOT NULL', array($bID));
+        $count2 = intval($count2);
         $count = $count1-$count2;
         return $count;
     }
@@ -86,12 +89,11 @@ class MagnettyEvent extends Model {
             'bID' => $bID,
             'uID' => $uID,
             'rsvp' => $date,
-            'waitlist' => '',
-            'cancel' => '',
-            'checkin' => '',
-            'paid' => '',
+            'waitlist' => null,
+            'cancel' => null,
+            'checkin' => null,
+            'paid' => null,
         );
-        $db = Loader::db();
         $db->insert('MagnettyEventAttend', $args);
         return;
     }
@@ -103,11 +105,11 @@ class MagnettyEvent extends Model {
             'cID' => $cID,
             'bID' => $bID,
             'uID' => $uID,
-			'rsvp' => '',
+			'rsvp' => null,
             'waitlist' => $date,
-            'cancel' => '',
-            'checkin' => '',
-            'paid' => '',
+            'cancel' => null,
+            'checkin' => null,
+            'paid' => null,
         );
         $db = Loader::db();
         $db->insert('MagnettyEventAttend', $args);
@@ -147,7 +149,7 @@ class MagnettyEvent extends Model {
     public static function recoverRSVP($bID, $uID, $date)
     {
         $db = Loader::db();
-        $null = '';
+        $null = null;
         $db-> Execute('UPDATE MagnettyEventAttend SET cancel = ? AND rsvp = ? WHERE bID = ? AND uID = ?', array($null, $date, $bID, $uID));
         return;
     }
