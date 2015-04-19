@@ -7,7 +7,7 @@ use Permissions;
 use BlockType;
 use User;
 use UserInfo;
-use Token;
+use Concrete\Core\Validation\CSRF\Token;
 use Route;
 use URL;
 use Exception;
@@ -178,7 +178,7 @@ class Controller extends BlockController {
 		 $ticketURL = $nh->getCollectionURL($c);
 		
 		if ($debugMode) {
-			echo "<p><b>Step 1: Initial Setup</b><br />";
+			echo "<p><b>View Step 1: Initial Setup</b><br />";
 			echo 'TicketNum; '; var_dump($magnettyTicketNum); echo '<br />';
 			echo 'TicketRSVP; '; var_dump($magnettyTicketCount); echo '<br />';
 			echo 'ViewMode; '; var_dump($viewMode); echo '<br />';
@@ -202,7 +202,7 @@ class Controller extends BlockController {
 		}
 
 		if ($debugMode) {
-			echo "<p><b>Step 2: Get login or guest </b><br />";
+			echo "<p><b>View Step 2: Get login or guest </b><br />";
 			echo 'TicketNum; '; var_dump($magnettyTicketNum); echo '<br />';
 			echo 'TicketRSVP; '; var_dump($magnettyTicketCount); echo '<br />';
 			echo 'ViewMode; '; var_dump($viewMode); echo '<br />';
@@ -218,7 +218,7 @@ class Controller extends BlockController {
 			$magnettyStatus = $Magnetty->getRSVPstatus($bID, $uID);
 
 			if ($debugMode) {
-				echo "<p><b>Step 3: Get Current Status</b><br />";
+				echo "<p><b>View Step 3: Get Current Status</b><br />";
 				echo 'TicketNum; '; var_dump($magnettyTicketNum); echo '<br />';
 				echo 'TicketRSVP; '; var_dump($magnettyTicketCount); echo '<br />';
 				echo 'ViewMode; '; var_dump($viewMode); echo '<br />';
@@ -237,15 +237,15 @@ class Controller extends BlockController {
 			if ($magnettyStatus['paid'] && $magnettyStatus['paid'] !== "0000-00-00 00:00:00") {
 				$viewMode = 'Paid';
 			}
-			if ($magnettyStatus['cancel'] && $magnettyStatus['cancel'] !== "0000-00-00 00:00:00") {
-				$viewMode = 'Cancelled';
-			}
 			if ($magnettyStatus['waitlist'] && $magnettyStatus['waitlist'] !== '0000-00-00 00:00:00') {
 				$viewMode = 'Waitlist';
 			}
+			if ($magnettyStatus['cancel'] && $magnettyStatus['cancel'] !== "0000-00-00 00:00:00") {
+				$viewMode = 'Cancelled';
+			}
 
 			if ($debugMode) {
-				echo "<p><b>Step 4: Get Status Detail</b><br />";
+				echo "<p><b>View Step 4: Get Status Detail</b><br />";
 				echo 'TicketNum; '; var_dump($magnettyTicketNum); echo '<br />';
 				echo 'TicketRSVP; '; var_dump($magnettyTicketCount); echo '<br />';
 				echo 'ViewMode; '; var_dump($viewMode); echo '<br />';
@@ -275,7 +275,7 @@ class Controller extends BlockController {
 			}
 		
 			if ($debugMode) {
-				echo "<p><b>Step 5: Get Availabilty Check</b><br />";
+				echo "<p><b>View Step 5: Get Availabilty Check</b><br />";
 				echo 'TicketNum; '; var_dump($magnettyTicketNum); echo '<br />';
 				echo 'TicketRSVP; '; var_dump($magnettyTicketCount); echo '<br />';
 				echo 'TicketAvailable; '; echo ($magnettyTicketNum-$magnettyTicketCount); echo '<br />';
@@ -294,6 +294,8 @@ class Controller extends BlockController {
 			$this->set('uID', $uID);
 		}
 		//$canCancel = $this->getCanCancel();
+		$token = new Token();
+		$this->set('token', $token);
 		$this->set('magnettyTicketNum', $magnettyTicketNum);
 		$this->set('magnettyTicketCount', $magnettyTicketCount);
 		$this->set('viewMode', $viewMode);
@@ -323,116 +325,132 @@ class Controller extends BlockController {
 			// Invalid
 
 		if ($debugMode) {
-			echo "<p><b>Step 1: Entering Action</b><br />";
+			echo "<p><b>Action Step 1: Entering Action</b><br />";
 			echo '</p>';
 		}
-	    if (!$this->isPost()) {
+		if (!$this->isPost()) {
+			view();
 			return;
 		}
 		$post = $this->post();
+	
+		if ($debugMode) {
+			echo "<p><b>Action Step 2: Has post data</b><br />";
+			echo 'post; '; var_dump($post); echo '<br />';
+			echo '</p>';
+		}
 
+		$token = new Token();
+		$tokenSubmitted = h($post['token']);
+		if ($tokenSubmitted == $token->validate('rsvp', $tokenSubmitted)) {
+	
+			if (!($post['MagnettybID'] && $post['MagnettyuID'])) {
+				return;
+			}
+	
 			if ($debugMode) {
-				echo "<p><b>Step 2: Has post data</b><br />";
+				echo "<p><b>Action Step 3: Has correct post </b><br />";
 				echo 'post; '; var_dump($post); echo '<br />';
+				echo 'MagnettybID; '; echo $post['MagnettybID']; echo '<br />';
+				echo 'MagnettyuID; '; echo $post['MagnettyuID']; echo '<br />';
 				echo '</p>';
 			}
-
-		if (!($post['MagnettybID'] && $post['MagnettyuID'])) {
-			return;
-		}
-
-		if ($debugMode) {
-			echo "<p><b>Step 3: Has correct post </b><br />";
-			echo 'post; '; var_dump($post); echo '<br />';
-			echo 'MagnettybID; '; echo $post['MagnettybID']; echo '<br />';
-			echo 'MagnettyuID; '; echo $post['MagnettyuID']; echo '<br />';
-			echo '</p>';
-		}
-		$u = new User();
-		$uID = $u->getUserID();
-		$bID = $this->bID;
-		$c = Page::getCurrentPage();
-		$cID =  $c->getCollectionID();
-
-		if ($debugMode) {
-			echo "<p><b>Step 4: Basic info such as uID, bID, cID</b><br />";
-			echo 'post; '; var_dump($post); echo '<br />';
-			echo 'MagnettybID; '; echo $post['MagnettybID']; echo '<br />';
-			echo 'MagnettyuID; '; echo $post['MagnettyuID']; echo '<br />';
-			echo 'uID; '; echo $uID; echo '<br />';
-			echo 'bID; '; echo $bID; echo '<br />';
-			echo 'cID; '; echo $cID; echo '<br />';
-			echo '</p>';
-		}
-
-		if (!($u->isRegistered() && $bID == $post['MagnettybID'] && $post['MagnettyuID'] == $uID)) {
-			return;
-		}
-
-		if ($u->isRegistered() && $bID == $post['MagnettybID'] && $post['MagnettyuID'] == $uID ) {
-
-			// Loading Magnetty Models
-			$Magnetty = new MagnettyEvent ();
-
-			// Get cuurent date and time
-			$date = Date('Y-m-d H:i:s');
-
-
-			if ($post['MagnettyStatus']=='rsvp') {
-
-
-				//
-				//
-				//  I Should Add DOUBLE RSVP CHECK
-				//
-				//
-				//
-
-				// Get the max number of tickets
-				$magnettyTicketNum = $this->getTicketNum();
-				// Get the current number of tickets RSVPed
-				$magnettyTicketCount = $Magnetty->getRSVPnum($bID);
-
-				if ( $magnettyTicketCount >= $magnettyTicketNum) {
-					$Magnetty->addWaitlist($cID, $bID, $uID, $date);
-					$emailStatus = 'Waitlist';
-				} else {
-					$Magnetty->addRSVP($cID, $bID, $uID, $date);
-					$emailStatus = 'RSVPed';
-				}
-
-			} else if ($post['MagnettyStatus']=='cancel') {
-				$Magnetty->cancelRSVP($bID, $uID, $date);
-				$emailStatus = 'Cancelled';
-				// Need to add recover function
-
-			} else if ($post['MagnettyStatus']=='paid') {
-				// In development
-				$emailStatus = 'Paid';
-				// Need to add recover function
-				
-			} else {
-				$emailStatus = 'Invalid';
-			}
-			
+			$u = new User();
+			$uID = $u->getUserID();
+			$bID = $this->bID;
+			$c = Page::getCurrentPage();
+			$cID =  $c->getCollectionID();
+	
 			if ($debugMode) {
-				echo "<p><b>Step 5: Email Flag</b><br />";
+				echo "<p><b>Action Step 4: Basic info such as uID, bID, cID</b><br />";
 				echo 'post; '; var_dump($post); echo '<br />';
 				echo 'MagnettybID; '; echo $post['MagnettybID']; echo '<br />';
 				echo 'MagnettyuID; '; echo $post['MagnettyuID']; echo '<br />';
 				echo 'uID; '; echo $uID; echo '<br />';
 				echo 'bID; '; echo $bID; echo '<br />';
 				echo 'cID; '; echo $cID; echo '<br />';
-				echo 'emailStatus: '; echo $emailStatus; echo '<br />';
 				echo '</p>';
 			}
-			if ($emailStatus) {
-				$this->MagnettySendEmail($emailStatus);
+	
+			if ($u->isRegistered() && $bID == $post['MagnettybID'] && $post['MagnettyuID'] == $uID ) {
+	
+				// Loading Magnetty Models
+				$Magnetty = new MagnettyEvent ();
+	
+				// Get cuurent date and time
+				$date = Date('Y-m-d H:i:s');
+				
+				$magnettyStatus = $Magnetty->getRSVPstatus($bID, $uID);
+	
+	
+				if ($post['MagnettyStatus']=='rsvp') {
+	
+	
+					//
+					//
+					//  I Should Add DOUBLE RSVP CHECK
+					//
+					//
+					//
+	
+					// Get the max number of tickets
+					$magnettyTicketNum = $this->getTicketNum();
+					// Get the current number of tickets RSVPed
+					$magnettyTicketCount = $Magnetty->getRSVPnum($bID);
+	
+					if ( $magnettyTicketCount >= $magnettyTicketNum) {
+						$Magnetty->addWaitlist($cID, $bID, $uID, $date);
+						$emailStatus = 'Waitlist';
+					} else {
+						$Magnetty->addRSVP($cID, $bID, $uID, $date);
+						$emailStatus = 'RSVPed';
+					}
+	
+				} else if ($post['MagnettyStatus']=='cancel') {
+					$Magnetty->cancelRSVP($bID, $uID, $date);
+					$emailStatus = 'Cancelled';
+					// Need to add recover function
+	
+				} else if ($post['MagnettyStatus']=='paid') {
+					// In development
+					$emailStatus = 'Paid';
+					// Need to add recover function
+					
+				} else {
+					$emailStatus = 'Invalid';
+				}
+				
+				if ($debugMode) {
+					echo "<p><b>Action Step 5: Email Flag</b><br />";
+					echo 'post; '; var_dump($post); echo '<br />';
+					echo 'MagnettybID; '; echo $post['MagnettybID']; echo '<br />';
+					echo 'MagnettyuID; '; echo $post['MagnettyuID']; echo '<br />';
+					echo 'uID; '; echo $uID; echo '<br />';
+					echo 'bID; '; echo $bID; echo '<br />';
+					echo 'cID; '; echo $cID; echo '<br />';
+					echo 'emailStatus: '; echo $emailStatus; echo '<br />';
+					echo '</p>';
+				}
+				if ($emailStatus) {
+					$this->MagnettySendEmail($emailStatus);
+					$this->view();
+					return;
+				} else {
+					throw new Exception($errorMsg . t('Error while action_rsvp'));
+				}
+	
 			} else {
-				throw new Exception($errorMsg . t('Error while action_rsvp'));
+				if ($debugMode) {
+					echo '<p><b>Action Step 4: The the actions was for different block</b></p>';
+				}
+				$this->view();
+				return;
 			}
-
 		} else {
+			if ($debugMode) {
+				echo '<p><b>Action Step 1: Security Token not validated</b></p>';
+			}
+			throw new Exception($errorMsg . t('Error has occured'));
 			return;
 		}
     }
@@ -502,7 +520,7 @@ class Controller extends BlockController {
 
 
 		if ($debugMode) {
-			echo "<p><b>Email Step 2: Setup FROM related info</b><br />";
+			echo "<p><b>Email Step 1: Iniial Info related info</b><br />";
 			echo 'uID; '; echo $uID; echo '<br />';
 			echo 'bID; '; echo $bID; echo '<br />';
 			echo 'toEmail; '; echo $toEmail; echo '<br />';
@@ -535,19 +553,15 @@ class Controller extends BlockController {
 
 
 		if ($debugMode) {
-			echo "<p><b>Step 5: Get Availabilty Check</b><br />";
-			echo 'TicketNum; '; var_dump($magnettyTicketNum); echo '<br />';
-			echo 'TicketRSVP; '; var_dump($magnettyTicketCount); echo '<br />';
-			echo 'TicketAvailable; '; echo ($magnettyTicketNum-$magnettyTicketCount); echo '<br />';
-			echo 'ViewMode; '; var_dump($viewMode); echo '<br />';
-			echo 'bID; '; var_dump($bID); echo '<br />';
-			echo 'cID; '; var_dump($cID); echo '<br />';
-			echo 'Status; '; var_dump($magnettyStatus); echo '<br />';
-			echo 'RSVP: ' . $magnettyStatus['rsvp'] . '<br />';
-			echo 'Check-in: ' . $magnettyStatus['checkin'] . '<br />';
-			echo 'Paid: ' . $magnettyStatus['paid'] . '<br />';
-			echo 'Cancelled: ' . $magnettyStatus['cancel'] . '<br />';
-			echo 'Waitlist: ' . $magnettyStatus['waitlist'] . '<br />';
+			echo "<p><b>Email Step 2: Setup FROM related info</b><br />";
+			echo 'uID; '; echo $uID; echo '<br />';
+			echo 'bID; '; echo $bID; echo '<br />';
+			echo 'fromEmail; '; echo $fromEmail; echo '<br />';
+			echo 'siteName; '; echo $siteName; echo '<br />';
+			echo 'toEmail; '; echo $toEmail; echo '<br />';
+			echo 'userName: '; echo $userName; echo '<br />';
+			echo 'ticketName: '; echo $ticketName; echo '<br />';
+			echo 'ticketURL: '; echo $ticketURL; echo '<br />';
 			echo '</p>';
 		}
 

@@ -55,27 +55,38 @@ class Controller extends \Concrete\Core\Package\Package {
 
 
         // install pages
-        $cp = SinglePage::add('/dashboard/magnetty', $pkg);
-        $cp = Page::getByPath('/dashboard/magnetty');
-        $cp->update(array('cName' => t('Magnetty'), 'cDescription' => t('Event RSVP and ticketing system for concrete5')));
+        $sp = SinglePage::add('/dashboard/magnetty', $pkg);
+        $sp = Page::getByPath('/dashboard/magnetty');
+        $sp->update(array('cName' => t('Magnetty'), 'cDescription' => t('Event RSVP and ticketing system for concrete5')));
 
-        $pes = SinglePage::add('/dashboard/magnetty/settings', $pkg);
-        $pes = Page::getByPath('/dashboard/magnetty/settings');
-        //$pes->setAttribute($iak, 'icon-wrench');
+        $sp = SinglePage::add('/dashboard/magnetty/settings', $pkg);
+        $sp = Page::getByPath('/dashboard/magnetty/settings');
 
+		$adminUser = UserInfo::getByID(USER_SUPER_ID);
+		if (is_object($adminUser)) {
+        	$adminUserEmail = $adminUser->getUserEmail();
+    	} else {
+        	throw new Exception(t("Oops, something is wrong with the Magnetty Ticket Block. Please tell your webmaster the following error message:") . t('From Email address cannot be set'));
+    	}
+    	
+    	$defaultConfirmationText = t("You have successfully RSVPed the event. Thank you.");
+    	$defaultWaitlistText = t("We're afraid that the event that you are trying to RSVP was full. We've added you to the wait list. If someone cancelled, we will add you to the RSVP list. Thank you.");
+    	$defaultCancelTextText = t("You have successfully cancelled the event. Thank you.");
 
-        $this->setDefaults();
+        $pkg->getConfig()->save('magnetty.allowCancel', true);
+        $pkg->getConfig()->save('magnetty.adminEmail', $adminUserEmail);
+        $pkg->getConfig()->save('magnetty.emailConfirmationText', $defaultConfirmationText);
+        $pkg->getConfig()->save('magnetty.emailWaitlistText', $defaultWaitlistText);
+        $pkg->getConfig()->save('magnetty.emailCancelText', $defaultCancelTextText);
 
     }
 
     public function uninstall()
     {
-        /*
-        $results= Page::getByPath('/event');
-        $results->delete();
+
         $db= Loader::db();
-        $db->Execute("DELETE from btProEventDates");
-        */
+        $db->Execute("DROP TABLE IF EXISTS MagnettyEventAttend, btMagnettyRSVPList, btMagnettyTicket;");
+        $sp = 
 
         parent::uninstall();
     }
@@ -90,43 +101,6 @@ class Controller extends \Concrete\Core\Package\Package {
     }
 
 
-
-    function setDefaults()
-    {
-
-        /*$args = array(
-            'AdminGroups' => '3',
-            'AllowCancel' => '1',
-            'showTooltips' => true,
-            'emailConfirmationText' => '',
-            'emailCancelText' => '',
-        );
-
-        $db = Loader::db();
-
-        $db->Execute("DELETE FROM MagnettyEventConfig");
-
-        $db->insert('MagnettyEventConfig', $args);*/
-
-		$adminUser = UserInfo::getByID(USER_SUPER_ID);
-		if (is_object($adminUser)) {
-        	$adminUserEmail = $adminUser->getUserEmail();
-    	} else {
-        	throw new Exception(t("Oops, something is wrong with the Magnetty Ticket Block. Please tell your webmaster the following error message:") . t('From Email address cannot be set'));
-    	}
-    	
-    	$defaultConfirmationText = t("You have successfully RSVPed the event. Thank you.");
-    	$defaultWaitlistText = t("We're afraid that the event that you are trying to RSVP was full. We've added you to the wait list. If someone cancelled, we will add you to the RSVP list. Thank you.");
-    	$defaultCancelTextText = t("You have successfully cancelled the event. Thank you.");
-
-        $pkg = Package::getByHandle('magnetty');
-        $pkg->getConfig()->save('magnetty.allowCancel', true);
-        $pkg->getConfig()->save('magnetty.adminEmail', $adminUserEmail);
-        $pkg->getConfig()->save('magnetty.emailConfirmationText', $defaultConfirmationText);
-        $pkg->getConfig()->save('magnetty.emailWaitlistText', $defaultWaitlistText);
-        $pkg->getConfig()->save('magnetty.emailCancelText', $defaultCancelTextText);
-
-    }
 
 }
 

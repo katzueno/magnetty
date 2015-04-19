@@ -4,9 +4,9 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 
 <form method="post" id="site-form" action="<?php echo $this->action('save_settings'); ?>"  enctype="multipart/form-data">
 
-    <?php //echo $this->controller->token->output('save_settings');?>
+    <?php echo $token->output('save_settings');?>
     
-        <h4><?php  echo t('Configuration of Magnetty Event Attend') ?></h4>
+        <h4><?php echo t('Configuration of Magnetty Event Attend') ?></h4>
         <br/>
 
 		<p><?php echo t('We will send you the email notification of all RSVP email');?></p>
@@ -21,8 +21,8 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
         <br/>
 
         <div class="form-group">
-            <?php   echo $form->label('allowCancel', t('Allow Cancellation?')); ?>
-            <?php   echo $form->checkbox('allowCancel', $allowCancel, true); ?>
+            <?php echo $form->label('allowCancel', t('Allow Cancellation?')); ?>
+            <?php echo $form->checkbox('allowCancel', $allowCancel, true); ?>
         </div>
 
 

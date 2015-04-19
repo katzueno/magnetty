@@ -3,6 +3,7 @@ namespace Concrete\Package\Magnetty\Controller\SinglePage\Dashboard\Magnetty;
 
 use \Concrete\Core\Page\Controller\DashboardPageController;
 use Package;
+use File;
 
 class Settings extends DashboardPageController {
 
@@ -30,7 +31,7 @@ class Settings extends DashboardPageController {
 
     public function save_settings()
     {
-        //if ($this->token->validate("save_settings")) {
+        if ($this->token->validate("save_settings")) {
             if ($this->isPost()) {
 		        $adminEmail = $this->post('adminEmail');
 		        $allowCancel = $this->post('allowCancel');
@@ -44,8 +45,8 @@ class Settings extends DashboardPageController {
                 $pkg->getConfig()->save('magnetty.emailCancelText', $emailCancelText);
                 $this->redirect('/dashboard/magnetty/settings','updated');
             }
-        // } else {
-        //     $this->set('error', array($this->token->getErrorMessage()));
+        } else {
+             $this->set('error', array($this->token->getErrorMessage()));
         }
     }
 
