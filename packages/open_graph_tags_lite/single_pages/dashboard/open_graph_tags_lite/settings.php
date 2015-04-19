@@ -2,7 +2,7 @@
 
 <form method="post" id="site-form" action="<?php   echo $this->action('save_settings'); ?>"  enctype="multipart/form-data">
 
-<?php   echo $this->controller->token->output('save_settings'); ?>
+	<?php echo $token->output('save_settings') ?>
 
     <fieldset>
         <legend><?php   echo t('Default Thumbnail'); ?></legend>
