@@ -147,6 +147,8 @@ class Controller extends BlockController {
 	function getEmailWaitlistBody()			{return $this->emailWaitlistBody;}
 	function getEmailCancellationSubject() 	{return $this->emailCancellationSubject;}
 	function getEmailCancellationBody()		{return $this->emailCancellationBody;}
+	function getEmailWaitlistCancellationSubject() 	{return $this->emailWaitlistCancellationSubject;}
+	function getEmailWaitlistCancellationBody()		{return $this->emailWaitlistCancellationBody;}
 	function getEmailPaymentSubject()		{return $this->emailPaymentSubject;}
 	function getEmailPaymentBody()			{return $this->emailPaymentBody;}
 
@@ -243,6 +245,9 @@ class Controller extends BlockController {
 			if ($magnettyStatus['cancel'] && $magnettyStatus['cancel'] !== "0000-00-00 00:00:00") {
 				$viewMode = 'Cancelled';
 			}
+			if ($magnettyStatus['waitlistcancel'] && $magnettyStatus['waitlistcancel'] !== "0000-00-00 00:00:00") {
+				$viewMode = 'WaitlistCancelled';
+			}
 
 			if ($debugMode) {
 				echo "<p><b>View Step 4: Get Status Detail</b><br />";
@@ -267,7 +272,7 @@ class Controller extends BlockController {
 				}
 			}
 			
-			if ($viewMode == 'Cancelled') {
+			if (($viewMode == 'Cancelled') || ($viewMode == 'WaitlistCancelled') ) {
 				if ( $magnettyTicketCount >= $magnettyTicketNum) {
 					$viewMode = 'Cancelled_Full';					
 				}
@@ -288,6 +293,7 @@ class Controller extends BlockController {
 				echo 'Paid: ' . $magnettyStatus['paid'] . '<br />';
 				echo 'Cancelled: ' . $magnettyStatus['cancel'] . '<br />';
 				echo 'Waitlist: ' . $magnettyStatus['waitlist'] . '<br />';
+				echo 'Waitlist Cancelled: ' . $magnettyStatus['waitlistcancel'] . '<br />';
 				echo '</p>';
 			}
 
@@ -409,7 +415,11 @@ class Controller extends BlockController {
 				} else if ($post['MagnettyStatus']=='cancel') {
 					$Magnetty->cancelRSVP($bID, $uID, $date);
 					$emailStatus = 'Cancelled';
-					// Need to add recover function
+					// Need to add waitlist recover function
+	
+				} else if ($post['MagnettyStatus']=='cancelwaitlist') {
+					$Magnetty->cancelWaitlistRSVP($bID, $uID, $date);
+					$emailStatus = 'WaitlistCancelled';
 	
 				} else if ($post['MagnettyStatus']=='paid') {
 					// In development
@@ -450,7 +460,7 @@ class Controller extends BlockController {
 			if ($debugMode) {
 				echo '<p><b>Action Step 1: Security Token not validated</b></p>';
 			}
-			throw new Exception($errorMsg . t('Error has occured'));
+			throw new Exception($errorMsg . t('Error has occurred'));
 			return;
 		}
     }
@@ -466,6 +476,7 @@ class Controller extends BlockController {
 			// RSVPed
 			// Waitlist
 			// Cancelled
+			// WaitlistCancelled
 			// Waitlist->RSVPed
 			// Paid
 			// Ivalid
@@ -566,8 +577,8 @@ class Controller extends BlockController {
 		}
 
 		$mh->to($toEmail); 
-		$mh->from($fromEmail, $siteName); 
-		$mh->replyto($fromEmail, $siteName); 		
+		$mh->from($fromEmail); 
+		$mh->replyto($fromEmail); 		
 
 		// Prepare to send RSVP Confirmation Email.
 		
@@ -632,6 +643,28 @@ class Controller extends BlockController {
 				throw new Exception($errorMsg . t('Cancel Email Body is not set'));
 			}			
 			$emailTemplate = 'magnetty_event_cancel';
+
+
+		// Prepare to send Waitlist Cancelled Confirmation Email.
+
+		} else if ($email == 'WaitlistCanceled') {
+
+			$emailSubject = $this->getEmailWaitlistCancellationSubject();
+			if (!$emailSubject) {
+				$emailSubject = t('Waitlist Cancel Confirmation: ') . $this->getTicketName();
+			}
+			if (!$emailSubject) {
+				throw new Exception($errorMsg . t('Waitlist Cancel Confirmation Email Subject is not set'));
+			}
+			
+			$emailBody = $this->getEmailCancellationBody();
+			if (!$emailBody) {
+				$emailBody = $pkgSettings['emailWaitlistCancelText'];
+			}
+			if (!$emailBody) {
+				throw new Exception($errorMsg . t('Waitlist Cancel Email Body is not set'));
+			}			
+			$emailTemplate = 'magnetty_event_waitlist_cancel';
 
 
 		// Prepare to send Waitlist_RSVP Confirmation Email.

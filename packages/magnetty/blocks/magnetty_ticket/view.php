@@ -85,6 +85,27 @@ if ($viewMode == 'Unregistered') {
 	</p>
 <?php }
 /*
+ * When RSVPed User who can cancel
+ */
+	else if  (($viewMode == 'Waitlist') && !($canCancel=='3')) { ?>
+	<p>
+		<form method="post" action="<?php echo $this->action('rsvp'); ?>" onSubmit="return checkSubmit()">
+			<button type="submit" class="btn btn-danger btn-block" onclick="$(this).closest('form').submit();return false" >
+				<strong><?php echo t('申込をキャンセルする') ?></strong>
+			</button>
+			<input type="hidden" name="token" value="<?php  echo $token->generate('rsvp'); ?>" />
+			<input type="hidden" name="MagnettybID" value="<?php echo $bID;?>" />
+			<input type="hidden" name="MagnettyuID" value="<?php echo $uID;?>" />
+			<input type="hidden" name="MagnettyStatus" value="cancel" />
+		</form>
+		<script type="text/javascript">
+		function checkSubmit() {
+			return confirm("<?php echo t('このイベントに参加申し込みをキャンセルしますか？');?>");
+		}
+		</script>
+	</p>
+<?php }
+/*
  * When RSVPed User
  */
 	else if (($viewMode == 'RSVPed') && ($canCancel=='3')) { ?>
@@ -147,10 +168,32 @@ if ($viewMode == 'Unregistered') {
 	</p>
 <?php }
 /*
+ * When Waitlist Cancelled user and they can re-register
+ */
+	else if  (($viewMode == 'WaitlistCancelled') && ($canCancel=='1')) { ?>
+	<p>
+		<form method="post" action="<?php echo $this->action('rsvp'); ?>" onSubmit="return checkSubmit()">
+			<button type="submit" class="btn btn-danger btn-block" onclick="$(this).closest('form').submit();return false" >
+				<strong><?php echo t('キャンセル済み | 再参加申込') ?></strong>
+			</button>
+			<input type="hidden" name="token" value="<?php  echo $token->generate('rsvp'); ?>" />
+			<input type="hidden" name="MagnettybID" value="<?php echo $bID;?>" />
+			<input type="hidden" name="MagnettyuID" value="<?php echo $uID;?>" />
+			<input type="hidden" name="MagnettyStatus" value="waitlistrsvp" />
+		</form>
+		<script type="text/javascript">
+		function checkSubmit() {
+			return confirm("<?php echo t('このイベントに再び参加申し込みをしますか？');?>");
+		}
+		</script>
+	</p>
+<?php }
+/*
  * When Cancelled user and they are full
  */
 	else if (
 		(($viewMode == 'Cancelled')  && !($canCancel=='1')) ||
+		($viewMode == 'WaitlistCancelled')  && !($canCancel=='1')) ||
 		($viewMode == 'Cancelled_Full')
 		) { ?>
 	<p>
@@ -193,7 +236,7 @@ if ($viewMode == 'Unregistered') {
 			<input type="hidden" name="token" value="<?php  echo $token->generate('rsvp'); ?>" />
 			<input type="hidden" name="MagnettybID" value="<?php echo $bID;?>" />
 			<input type="hidden" name="MagnettyuID" value="<?php echo $uID;?>" />
-			<input type="hidden" name="MagnettyStatus" value="cancel" />
+			<input type="hidden" name="MagnettyStatus" value="waitlistcancel" />
 		</form>
 		<script type="text/javascript">
 		function checkSubmit() {

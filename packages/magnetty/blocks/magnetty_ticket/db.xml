@@ -21,13 +21,17 @@
 		</field>
 		<field name="emailCancellationBody" type="X2">
 		</field>
-		<field name="emailPaymentSubject" type="C" size="255">
-		</field>
-		<field name="emailPaymentBody" type="X2">
-		</field>
 		<field name="emailWaitlistSubject" type="C" size="255">
 		</field>
 		<field name="emailWaitlistBody" type="X2">
+		</field>
+		<field name="emailWaitlistCancellationSubject" type="C" size="255">
+		</field>
+		<field name="emailWaitlistCancellationBody" type="X2">
+		</field>
+		<field name="emailPaymentSubject" type="C" size="255">
+		</field>
+		<field name="emailPaymentBody" type="X2">
 		</field>
         <index name="bID">
             <col>bID</col>

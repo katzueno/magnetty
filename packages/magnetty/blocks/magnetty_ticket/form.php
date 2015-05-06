@@ -67,6 +67,30 @@ back to db.xml
 </fieldset>
 
 <fieldset>
+<legend><?php echo t('Wait-list Confirmation');?></legend>
+<div class="form-group">
+	<?php echo $form->label('emailWaitlistSubect', t('Subject'))?>
+	<?php echo $form->text('emailWaitlistSubect', $emailWaitlistSubect, array('style'=>'width: 60%;')); ?>
+</div>
+<div class="form-group">
+    <?php   echo $form->label('emailWaitlistBody', t('Body')); ?>
+    <?php   echo $form->textarea('emailWaitlistBody', $emailConfirmationBody); ?>
+</div>
+</fieldset>
+
+<fieldset>
+<legend><?php echo t('Wait-list Cancellation Confirmation');?></legend>
+<div class="form-group">
+	<?php echo $form->label('emailWaitlistCancellationSubject', t('Subject'))?>
+	<?php echo $form->text('emailWaitlistCancellationSubject', $emailWaitlistCancellationSubject, array('style'=>'width: 60%;')); ?>
+</div>
+<div class="form-group">
+    <?php   echo $form->label('emailWaitlistCancellationBody', t('Body')); ?>
+    <?php   echo $form->textarea('emailWaitlistCancellationBody', $emailWaitlistCancellationBody); ?>
+</div>
+</fieldset>
+
+<fieldset>
 <legend><?php echo t('Payment Confirmation Email')?></legend>
 <div class="form-group">
 	<?php echo $form->label('emailPaymentSubject', t('Subject'))?>
@@ -78,14 +102,3 @@ back to db.xml
 </div>
 </fieldset>
 
-<fieldset>
-<legend><?php echo t('Wait-list Confirmation');?></legend>
-<div class="form-group">
-	<?php echo $form->label('emailWaitlistSubect', t('Subject'))?>
-	<?php echo $form->text('emailWaitlistSubect', $emailWaitlistSubect, array('style'=>'width: 60%;')); ?>
-</div>
-<div class="form-group">
-    <?php   echo $form->label('emailWaitlistBody', t('Body')); ?>
-    <?php   echo $form->textarea('emailWaitlistBody', $emailConfirmationBody); ?>
-</div>
-</fieldset>
