@@ -15,6 +15,7 @@
         <field name="rsvp" type="T"/>
         <field name="checkin" type="T"/>
         <field name="waitlist" type="T"/>
+        <field name="waitlistcancel" type="T"/>
         <field name="cancel" type="T"/>
         <field name="paid" type="T"/>
         <index name="idx_cID">
