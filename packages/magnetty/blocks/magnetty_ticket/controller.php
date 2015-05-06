@@ -560,6 +560,16 @@ class Controller extends BlockController {
 			}
 		}
 
+		if (!$pkgSettings['replytoEmail']) {
+			$replytoEmail = $fromEmail;
+		} else {
+			$replytoEmail = $pkgSettings['replytoEmail'];
+
+		}
+		if (!$replytoEmail) {
+			throw new Exception($errorMsg . t('Replyto Email address is not set'));
+		}
+
 		$siteName = Config::get('concrete.site');
 
 
@@ -568,6 +578,7 @@ class Controller extends BlockController {
 			echo 'uID; '; echo $uID; echo '<br />';
 			echo 'bID; '; echo $bID; echo '<br />';
 			echo 'fromEmail; '; echo $fromEmail; echo '<br />';
+			echo 'replytoEmail; '; echo $replytoEmail; echo '<br />';
 			echo 'siteName; '; echo $siteName; echo '<br />';
 			echo 'toEmail; '; echo $toEmail; echo '<br />';
 			echo 'userName: '; echo $userName; echo '<br />';
@@ -578,7 +589,7 @@ class Controller extends BlockController {
 
 		$mh->to($toEmail); 
 		$mh->from($fromEmail); 
-		$mh->replyto($fromEmail); 		
+		$mh->replyto($replytoEmail); 		
 
 		// Prepare to send RSVP Confirmation Email.
 		

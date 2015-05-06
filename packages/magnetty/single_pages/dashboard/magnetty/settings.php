@@ -8,13 +8,19 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
     
         <h4><?php echo t('Configuration of Magnetty Event Attend') ?></h4>
         <br/>
+        <p><?php echo t('WARNING: All fields are REQUIRED! Otherwise, it may result in error.');?></p>
+        <br/>
 
-		<p><?php echo t('We will send you the email notification of all RSVP email');?></p>
+		<p><?php echo t('We will send you the email notification of all RSVP email from the following email addresses');?></p>
         <div class="form-group">
-            <?php   echo $form->label('adminEmail', t('Admin Email Address')); ?>
+            <?php   echo $form->label('adminEmail', t('From Email Address')); ?>
             <?php   echo $form->email('adminEmail', $adminEmail); ?>
         </div>
-		<p><?php echo t('This email address will also be used as FROM and REPLY-TO address.');?></p>
+        <div class="form-group">
+            <?php   echo $form->label('replytoEmail', t('Reply-to Email Address (Optional)')); ?>
+            <?php   echo $form->email('replytoEmail', $replytoEmail); ?>
+        </div>
+		<p><?php echo t('If you leave Reply-to email address blank, From Email Address will be used.');?></p>
         <p><?php echo t('WARNING: We are not validating this email address. The error messages are not being sent at the moment. Please make sure to test before going to live!');?></p>
 
 

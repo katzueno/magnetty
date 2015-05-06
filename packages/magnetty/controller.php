@@ -77,6 +77,7 @@ class Controller extends \Concrete\Core\Package\Package {
 
         $pkg->getConfig()->save('magnetty.allowCancel', true);
         $pkg->getConfig()->save('magnetty.adminEmail', $adminUserEmail);
+        $pkg->getConfig()->save('magnetty.replytoEmail', $adminUserEmail);
         $pkg->getConfig()->save('magnetty.emailConfirmationText', $defaultConfirmationText);
         $pkg->getConfig()->save('magnetty.emailWaitlistText', $defaultWaitlistText);
         $pkg->getConfig()->save('magnetty.emailCancelText', $defaultCancelText);
