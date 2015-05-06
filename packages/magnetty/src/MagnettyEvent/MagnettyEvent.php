@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace Concrete\Package\Magnetty\Src\MagnettyEvent;
 
 use Database;
@@ -56,14 +56,14 @@ class MagnettyEvent {
 
     public static function getRSVPstatus($bID, $uID)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $query = $db->GetRow('SELECT * from MagnettyEventAttend WHERE bID = ? AND uID = ?', array($bID, $uID));
         return $query;
     }
 
     public static function getRSVPnum($bID)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $nulldate = '0000-00-00 00:00:00';
         $count1 = $db->GetOne('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND rsvp IS NOT NULL', array($bID));
         $count1 = intval($count1);
@@ -75,14 +75,14 @@ class MagnettyEvent {
 
     public static function getCancelnum($bID)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $query = $db->GetAll('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND cancel IS NOT NULL', array($bID));
         return $query;
     }
 
     public static function addRSVP($cID, $bID, $uID, $date)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $args = array(
             'cID' => $cID,
             'bID' => $bID,
@@ -99,7 +99,7 @@ class MagnettyEvent {
 
     public static function addWaitlist($cID, $bID, $uID, $date)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $args = array(
             'cID' => $cID,
             'bID' => $bID,
@@ -110,21 +110,21 @@ class MagnettyEvent {
             'checkin' => null,
             'paid' => null,
         );
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $db->insert('MagnettyEventAttend', $args);
         return;
     }
 
     public static function checkinRSVP($bID, $uID, $date)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $db-> update('MagnettyEventAttend SET checkin = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
         return;
     }
 
     public static function paidRSVP($bID, $uID, $date)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         //$db-> update($table, $data, array('id' => 17));
         $db-> update('MagnettyEventAttend SET paid = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
         return;
@@ -132,7 +132,7 @@ class MagnettyEvent {
 
     public static function cancelRSVP($bID, $uID, $date)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $data = array (
 	        'cancel' => $date,
         );
@@ -147,7 +147,7 @@ class MagnettyEvent {
 
     public static function recoverRSVP($bID, $uID, $date)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $null = null;
         $db-> Execute('UPDATE MagnettyEventAttend SET cancel = ? AND rsvp = ? WHERE bID = ? AND uID = ?', array($null, $date, $bID, $uID));
         return;
@@ -155,7 +155,7 @@ class MagnettyEvent {
 
     public static function getRSVPTicketList($bID)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $query = $db->GetAll('SELECT * from MagnettyEventAttend WHERE bID = ? AND cancel IS NULL ORDER BY sortOrder', array($this->bID));
         $this->set('rows', $query);
         return $query;
@@ -163,7 +163,7 @@ class MagnettyEvent {
 
     public static function getWaitList($bID)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $query = $db->GetAll('SELECT * from MagnettyEventAttend WHERE bID = ? AND waitlist IS NOT NULL ORDER BY sortOrder', array($this->bID));
         $this->set('rows', $query);
         return $query;
@@ -171,7 +171,7 @@ class MagnettyEvent {
 
     public static function getCancelTicketList($bID)
     {
-        $db = Database::get();
+        $db = Database::getActiveConnection();
         $query = $db->GetAll('SELECT * from MagnettyEventAttend WHERE bID = ? AND cancel IS NOT NULL ORDER BY sortOrder', array($this->bID));
         $this->set('rows', $query);
         return $query;
