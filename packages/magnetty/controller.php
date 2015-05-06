@@ -72,13 +72,15 @@ class Controller extends \Concrete\Core\Package\Package {
     	
     	$defaultConfirmationText = t("You have successfully RSVPed the event. Thank you.");
     	$defaultWaitlistText = t("We're afraid that the event that you are trying to RSVP was full. We've added you to the wait list. If someone cancelled, we will add you to the RSVP list. Thank you.");
-    	$defaultCancelTextText = t("You have successfully cancelled the event. Thank you.");
+    	$defaultCancelText = t("You have successfully cancelled the event. Thank you.");
+    	$defaultWaitlistCancelText = t("You have successfully cancelled the event. Thank you.");
 
         $pkg->getConfig()->save('magnetty.allowCancel', true);
         $pkg->getConfig()->save('magnetty.adminEmail', $adminUserEmail);
         $pkg->getConfig()->save('magnetty.emailConfirmationText', $defaultConfirmationText);
         $pkg->getConfig()->save('magnetty.emailWaitlistText', $defaultWaitlistText);
-        $pkg->getConfig()->save('magnetty.emailCancelText', $defaultCancelTextText);
+        $pkg->getConfig()->save('magnetty.emailCancelText', $defaultCancelText);
+        $pkg->getConfig()->save('magnetty.emailWaitlistCancelText', $defaultWaitlistCancelText);
 
     }
 

@@ -15,11 +15,13 @@ class Settings extends DashboardPageController {
         $emailConfirmationText = $pkg->getConfig()->get('magnetty.emailConfirmationText');
         $emailWaitlistText = $pkg->getConfig()->get('magnetty.emailWaitlistText');
         $emailCancelText = $pkg->getConfig()->get('magnetty.emailCancelText');
+        $emailWaitlistCancelText = $pkg->getConfig()->get('magnetty.emailWaitlistCancelText');
 		$this->set('adminEmail', $adminEmail);
 		$this->set('allowCancel', $allowCancel);
 		$this->set('emailWaitlistText', $emailWaitlistText);
 		$this->set('emailConfirmationText', $emailConfirmationText);
 		$this->set('emailCancelText', $emailCancelText);
+		$this->set('emailWaitlistCancelText', $emailWaitlistCancelText);
 
     }
 
@@ -38,12 +40,14 @@ class Settings extends DashboardPageController {
 		        $emailConfirmationText = $this->post('emailConfirmationText');
 		        $emailWaitlistText = $this->post('emailWaitlistText');
 		        $emailCancelText = $this->post('emailCancelText');
+                $emailWaitlistCancelText = $this->post('emailWaitlistCancelText');
                 $pkg = Package::getByHandle('magnetty');
                 $pkg->getConfig()->save('magnetty.adminEmail', $adminEmail);
                 $pkg->getConfig()->save('magnetty.allowCancel', $allowCancel);
                 $pkg->getConfig()->save('magnetty.emailConfirmationText', $emailConfirmationText);
                 $pkg->getConfig()->save('magnetty.emailWaitlistText', $emailWaitlistText);
                 $pkg->getConfig()->save('magnetty.emailCancelText', $emailCancelText);
+                $pkg->getConfig()->save('magnetty.emailWaitlistCancelText', $emailWaitlistCancelText);
                 $this->redirect('/dashboard/magnetty/settings','updated');
             }
         } else {

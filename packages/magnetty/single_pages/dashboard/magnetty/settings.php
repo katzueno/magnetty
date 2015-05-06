@@ -44,6 +44,12 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             <?php   echo $form->textarea('emailCancelText', $emailCancelText); ?>
         </div>
 
+		<p><?php echo t('Please enter the default waitlist cancellation email body text.');?></p>
+        <div class="form-group">
+            <?php   echo $form->label('emailWaitlistCancelText', t('Waitlist Cancellation Email')); ?>
+            <?php   echo $form->textarea('emailWaitlistCancelText', $emailWaitlistCancelText); ?>
+        </div>
+
     <div class="ccm-dashboard-form-actions-wrapper">
     <div class="ccm-dashboard-form-actions">
         <button class="pull-right btn btn-success" type="submit" ><?php echo t('Save'); ?></button>
