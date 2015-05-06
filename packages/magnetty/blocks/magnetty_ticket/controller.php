@@ -433,7 +433,7 @@ class Controller extends BlockController {
 				}
 				if ($emailStatus) {
 					$this->MagnettySendEmail($emailStatus);
-					$this->view();
+					$this->redirect($c->getCollectionPath());
 					return;
 				} else {
 					throw new Exception($errorMsg . t('Error while action_rsvp'));
@@ -443,7 +443,7 @@ class Controller extends BlockController {
 				if ($debugMode) {
 					echo '<p><b>Action Step 4: The the actions was for different block</b></p>';
 				}
-				//$this->view();
+				$this->view();
 				return;
 			}
 		} else {
