@@ -8,7 +8,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
     
         <h4><?php echo t('Configuration of Magnetty Event Attend') ?></h4>
         <br/>
-        <p><?php echo t('WARNING: All fields are REQUIRED! Otherwise, it may result in error.');?></p>
+        <p><?php echo t('<strong>WARNING:</strong> Almost all fields are REQUIRED! Otherwise, it may result in error.');?></p>
         <br/>
 
 		<p><?php echo t('We will send you the email notification of all RSVP email from the following email addresses');?></p>
@@ -32,7 +32,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
         </div>
 
 
-		<p><?php echo t('Please enter the default confirmation email bosy text.');?></p>
+		<p><?php echo t('Please enter the default confirmation email body text.');?></p>
         <div class="form-group">
             <?php   echo $form->label('emailConfirmationText', t('Confirmation Email')); ?>
             <?php   echo $form->textarea('emailConfirmationText', $emailConfirmationText); ?>
