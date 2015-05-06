@@ -171,6 +171,7 @@ class Controller extends BlockController {
 		$Magnetty = new MagnettyEvent ();
 		// Get the max number of tickets
 		$magnettyTicketNum = $this->getTicketNum();
+		$magnettyTicketNum = intval($magnettyTicketNum);
 		// Get the current number of tickets RSVPed
 		$magnettyTicketCount = $Magnetty->getRSVPnum($bID);
 
@@ -266,14 +267,16 @@ class Controller extends BlockController {
 			}
 
 
+			$magnettyTicketAvailable = $magnettyTicketNum-$magnettyTicketCount;
+			
 			if ($viewMove == 'Registered') {
-				if ( $magnettyTicketCount >= $magnettyTicketNum) {
+				if ( $magnettyTicketAvailable < 1) {
 					$viewMode = 'Full';
 				}
 			}
 			
 			if (($viewMode == 'Cancelled') || ($viewMode == 'WaitlistCancelled') ) {
-				if ( $magnettyTicketCount >= $magnettyTicketNum) {
+				if ( $magnettyTicketAvailable < 1) {
 					$viewMode = 'Cancelled_Full';					
 				}
 
@@ -283,7 +286,7 @@ class Controller extends BlockController {
 				echo "<p><b>View Step 5: Get Availabilty Check</b><br />";
 				echo 'TicketNum; '; var_dump($magnettyTicketNum); echo '<br />';
 				echo 'TicketRSVP; '; var_dump($magnettyTicketCount); echo '<br />';
-				echo 'TicketAvailable; '; echo ($magnettyTicketNum-$magnettyTicketCount); echo '<br />';
+				echo 'TicketAvailable; '; echo ($magnettyTicketAvailable); echo '<br />';
 				echo 'ViewMode; '; var_dump($viewMode); echo '<br />';
 				echo 'bID; '; var_dump($bID); echo '<br />';
 				echo 'cID; '; var_dump($cID); echo '<br />';
@@ -401,6 +404,7 @@ class Controller extends BlockController {
 	
 					// Get the max number of tickets
 					$magnettyTicketNum = $this->getTicketNum();
+					$magnettyTicketNum = intval($magnettyTicketNum);
 					// Get the current number of tickets RSVPed
 					$magnettyTicketCount = $Magnetty->getRSVPnum($bID);
 	

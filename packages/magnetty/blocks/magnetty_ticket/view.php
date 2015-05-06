@@ -193,7 +193,7 @@ if ($viewMode == 'Unregistered') {
  */
 	else if (
 		(($viewMode == 'Cancelled')  && !($canCancel=='1')) ||
-		($viewMode == 'WaitlistCancelled')  && !($canCancel=='1')) ||
+		(($viewMode == 'WaitlistCancelled')  && !($canCancel=='1')) ||
 		($viewMode == 'Cancelled_Full')
 		) { ?>
 	<p>
