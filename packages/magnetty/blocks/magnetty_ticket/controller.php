@@ -443,7 +443,7 @@ class Controller extends BlockController {
 				if ($debugMode) {
 					echo '<p><b>Action Step 4: The the actions was for different block</b></p>';
 				}
-				$this->view();
+				//$this->view();
 				return;
 			}
 		} else {
