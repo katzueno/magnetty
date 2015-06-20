@@ -2,6 +2,7 @@
 namespace Concrete\Package\Magnetty;
 
 use BlockType;
+use BlockTypeSet;
 use SinglePage;
 use Page;
 use View;
@@ -33,7 +34,14 @@ class Controller extends \Concrete\Core\Package\Package {
     protected $pkgHandle = 'magnetty';
     protected $appVersionRequired = '5.7.2';
     protected $pkgVersion = '0.0.1';
-
+	protected static $blockTypes = array(
+        array(
+			'handle' => 'magnetty_ticket', 'set' => 'social',
+		),
+        array(
+			'handle' => 'magnetty_rsvp_list', 'set' => 'social',
+		)
+    );
     public function getPackageDescription()
     {
         return t("Event RSVP and ticketing system for concrete5");
@@ -50,8 +58,18 @@ class Controller extends \Concrete\Core\Package\Package {
         $pkg = parent::install();
 
         //install blocks
-        BlockType::installBlockTypeFromPackage('magnetty_ticket', $pkg);
-        BlockType::installBlockTypeFromPackage('magnetty_rsvp_list', $pkg);
+		foreach (self::$blockTypes as $blockType) {
+            $existingBlockType = BlockType::getByHandle($blockType['handle']);
+            if (!$existingBlockType) {
+                BlockType::installBlockTypeFromPackage($blockType['handle'], $pkg);
+            }
+            if (isset($blockType['set']) && $blockType['set']) {
+                $navigationBlockTypeSet = BlockTypeSet::getByHandle($blockType['set']);
+                if ($navigationBlockTypeSet) {
+                    $navigationBlockTypeSet->addBlockType(BlockType::getByHandle($blockType['handle']));
+                }
+            }
+        }
 
 
         // install pages
