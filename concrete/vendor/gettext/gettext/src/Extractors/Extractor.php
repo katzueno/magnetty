@@ -1,7 +1,8 @@
 <?php
 namespace Gettext\Extractors;
 
-use Exception, InvalidArgumentException;
+use Exception;
+use InvalidArgumentException;
 use Gettext\Translations;
 
 abstract class Extractor
@@ -80,7 +81,7 @@ abstract class Extractor
             throw new Exception("Cannot read the file '$file', probably permissions");
         }
 
-        $content = fread($fd, $length);
+        $content = $length ? fread($fd, $length) : '';
         fclose($fd);
 
         return $content;

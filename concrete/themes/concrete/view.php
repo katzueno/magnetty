@@ -13,19 +13,18 @@ $view->addHeaderItem('<meta name="viewport" content="width=device-width, initial
 
 $showLogo = true;
 if (is_object($c)) {
-    if (is_object($cp)) {
-        if ($cp->canViewToolbar()) {
-            $showLogo = false;
-        }
+    $cp = new Permissions($c);
+    if ($cp->canViewToolbar()) {
+        $showLogo = false;
     }
-        
+
      Loader::element('header_required');
 } else { 
     $this->markHeaderAssetPosition();
 }
 
 $showAccount = false;
-if (Config::get('concrete.user.profiles_enabled')) {
+if (Config::get('concrete.user.profiles_enabled') && Core::isInstalled()) {
     $account = Page::getByPath('/account');
     if (is_object($account) && !$account->isError()) {
         $cp = new Permissions($account);

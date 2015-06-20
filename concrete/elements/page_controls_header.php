@@ -2,7 +2,6 @@
 defined('C5_EXECUTE') or die("Access Denied.");
 $valt = Loader::helper('validation/token');
 $token = '&' . $valt->getParameter();
-$html = Loader::helper('html');
 $dh = Loader::helper('concrete/dashboard');
 
 if (isset($cp)) {
@@ -10,7 +9,7 @@ if (isset($cp)) {
 
 ?>
 
-<style type="text/css">body {margin-top: 49px !important;} </style>
+<style type="text/css">div.ccm-page {padding-top: 49px !important;} </style>
 
 <script type="text/javascript">
 <?php
@@ -69,22 +68,7 @@ EOL;
 	}
 	$cih = Loader::helper('concrete/ui');
 	if (Localization::activeLanguage() != 'en') {
-		$alternatives = array(Localization::activeLocale());
-		if(Localization::activeLocale() !== Localization::activeLanguage()) {
-			$alternatives[] = Localization::activeLanguage();
-		}
-		foreach($alternatives as $alternative) {
-			$alternativeJS = $html->javascript('i18n/ui.datepicker-' . str_replace('_', '-', $alternative) . '.js');
-			if(is_file($alternativeJS->getAssetPath())) {
-				$v->addFooterItem($alternativeJS);
-				break;
-			}
-		}
 		$v->addFooterItem('<script type="text/javascript">$(function() { jQuery.datepicker.setDefaults({dateFormat: \'yy-mm-dd\'}); });</script>');
-	}
-	if (!Config::get('concrete.misc.seen_introduction')) {
-		$v->addFooterItem('<script type="text/javascript">$(function() { ccm_showAppIntroduction(); });</script>');
-		Config::save('concrete.misc.seen_introduction', true);
 	}
 }
 

@@ -227,7 +227,7 @@ class Feed
 
     public function getFeedURL()
     {
-        return BASE_URL . \URL::to('/rss/' . $this->getHandle());
+        return \URL::to('/rss/' . $this->getHandle());
     }
     /**
      * @Column(type="boolean")
@@ -381,20 +381,19 @@ class Feed
         }
     }
 
-    public function getOutput()
+    public function getOutput($request = null)
     {
         $pl = $this->getPageListObject();
-        $link = BASE_URL;
         if ($this->cParentID) {
             $parent = Page::getByID($this->cParentID);
-            $link = $parent->getCollectionLink(true);
+            $link = $parent->getCollectionLink();
         }
         $pagination = $pl->getPagination();
         if ($pagination->getTotalResults() > 0) {
             $writer = new \Zend\Feed\Writer\Feed();
             $writer->setTitle($this->getTitle());
             $writer->setDescription($this->getDescription());
-            $writer->setLink($link);
+            $writer->setLink((string) $link);
             foreach($pagination->getCurrentPageResults() as $p) {
                 $entry = $writer->createEntry();
                 $entry->setTitle($p->getCollectionName());
@@ -404,9 +403,19 @@ class Feed
                     $content = t('No Content.');
                 }
                 $entry->setDescription($content);
-                $entry->setLink($p->getCollectionLink(true));
+                $entry->setLink((string) $p->getCollectionLink(true));
                 $writer->addEntry($entry);
             }
+
+            $ev = new FeedEvent($parent);
+            $ev->setFeedObject($this);
+            $ev->setWriterObject($writer);
+            $ev->setRequest($request);
+
+            $ev = \Events::dispatch('on_page_feed_output', $ev);
+
+            $writer = $ev->getWriterObject();
+
             return $writer->export('rss');
         }
     }

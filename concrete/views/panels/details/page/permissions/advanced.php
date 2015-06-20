@@ -7,7 +7,7 @@ defined('C5_EXECUTE') or die("Access Denied.");
 	<?php
 	  $cpc = $c->getPermissionsCollectionObject();
 	if ($c->getCollectionInheritance() == "PARENT") { ?>
-		<div class="alert alert-info"><?php echo t('This page inherits its permissions from:');?> <a target="_blank" href="<?php echo DIR_REL?>/<?php echo DISPATCHER_FILENAME?>?cID=<?php echo $cpc->getCollectionID()?>"><?php echo $cpc->getCollectionName()?></a></div>
+		<div class="alert alert-info"><?php echo t('This page inherits its permissions from:');?> <a target="_blank" href="<?php echo URL::to($cpc)?>"><?php echo $cpc->getCollectionName()?></a></div>
 	<?php } ?>		
 
 

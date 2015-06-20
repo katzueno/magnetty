@@ -39,7 +39,7 @@
     </fieldset>
 
     <fieldset style="margin-bottom: 15px">
-        <legend style="display: inline-block; margin-bottom: 0; width: auto; font-size: 14px; font-weight: bold" class="launch-tooltip" data-placement="right" title="<?php echo t('Determines whether ')?>"><?php echo t('Compress LESS Output.')?></legend>
+        <legend style="display: inline-block; margin-bottom: 0; width: auto; font-size: 14px; font-weight: bold" class="launch-tooltip" data-placement="right" title="<?php echo t('Determines whether compiled LESS stylesheets should output as compressed CSS. Uncompressed stylesheets are slightly larger but easier to read.')?>"><?php echo t('Compress LESS Output.')?></legend>
 
         <div class="radio">
             <label>
@@ -148,7 +148,7 @@
 
     <div class="ccm-dashboard-form-actions-wrapper">
         <div class="ccm-dashboard-form-actions">
-            <button class="pull-right btn btn-success" type="submit" ><?php echo t('Save')?></button>
+            <button class="pull-right btn btn-primary" type="submit" ><?php echo t('Save')?></button>
         </div>
     </div>
 

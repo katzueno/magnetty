@@ -1,5 +1,8 @@
 <?php defined('C5_EXECUTE') or die("Access Denied."); ?>
-<form method="post" action="<?php echo $view->action('save')?>">
+
+<p class="lead"><?php echo $pagetype->getPageTypeDisplayName(); ?></p>
+
+<form method="post" id="ccm-permission-list-form"   action="<?php echo $view->action('save')?>">
 <?php echo Loader::helper('validation/token')->output('save_permissions')?>
     <input type="hidden" name="ptID" value="<?php echo $pagetype->getPageTypeID()?>" />
     <fieldset>

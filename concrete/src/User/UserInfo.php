@@ -345,8 +345,8 @@ class UserInfo extends Object implements \Concrete\Core\Permission\ObjectInterfa
             $mh->addParameter('msgBody', $text);
             $mh->addParameter('msgAuthor', $this->getUserName());
             $mh->addParameter('msgDateCreated', $msgDateCreated);
-            $mh->addParameter('profileURL', BASE_URL . View::url('/members/profile', 'view', $this->getUserID()));
-            $mh->addParameter('profilePreferencesURL', BASE_URL . View::url('/account/profile/edit'));
+            $mh->addParameter('profileURL', View::url('/members/profile', 'view', $this->getUserID()));
+            $mh->addParameter('profilePreferencesURL', View::url('/account/profile/edit'));
             $mh->to($recipient->getUserEmail());
             $mh->addParameter('siteName', Config::get('concrete.site'));
 
@@ -354,7 +354,7 @@ class UserInfo extends Object implements \Concrete\Core\Permission\ObjectInterfa
             if (is_object($mi) && $mi->isMailImporterEnabled()) {
                 $mh->load('private_message_response_enabled');
                 // we store information ABOUT the message here. The mail handler has to know how to handle this.
-                $data = new stdClass();
+                $data = new \stdClass();
                 $data->msgID = $msgID;
                 $data->toUID = $recipient->getUserID();
                 $data->fromUID = $this->getUserID();

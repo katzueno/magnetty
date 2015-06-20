@@ -7,7 +7,6 @@ use Gettext\Utils\StringReader;
 /**
  * Class to get gettext strings from .mo files
  */
-
 class Mo extends Extractor implements ExtractorInterface
 {
     const MAGIC1 = -1794895138;
@@ -48,25 +47,55 @@ class Mo extends Extractor implements ExtractorInterface
         for ($i = 0; $i < $total; $i++) {
             $stream->seekto($table_originals[$i * 2 + 2]);
             $original = $stream->read($table_originals[$i * 2 + 1]);
-
-            if (empty($original)) {
-                continue;
-            }
-
             $stream->seekto($table_translations[$i * 2 + 2]);
-            $original = explode("\000", $original, 2);
-            $translated = explode("\000", $stream->read($table_translations[$i * 2 + 1]), 2);
+            $translated = $stream->read($table_translations[$i * 2 + 1]);
 
-            $plural = isset($original[1]) ? $original[1] : '';
-            $pluralTranslation = isset($translated[1]) ? $translated[1] : '';
+            if ($original === '') {
+                // Headers
+                foreach (explode("\n", $translated) as $headerLine) {
+                    if ($headerLine !== '') {
+                        $headerChunks = preg_split('/:\s*/', $headerLine, 2);
+                        $translations->setHeader($headerChunks[0], isset($headerChunks[1]) ? $headerChunks[1] : '');
+                    }
+                }
+            } else {
+                $chunks = explode("\x04", $original, 2);
 
-            $translation = $translations->insert(null, $original[0], $plural);
-            $translation->setTranslation($translated[0]);
+                if (isset($chunks[1])) {
+                    $context = $chunks[0];
+                    $original = $chunks[1];
+                } else {
+                    $context = '';
+                }
 
-            if ($plural && $pluralTranslation) {
-                $translation->setPluralTranslation($pluralTranslation);
+                $chunks = explode("\x00", $original, 2);
+
+                if (isset($chunks[1])) {
+                    $original = $chunks[0];
+                    $plural = $chunks[1];
+                } else {
+                    $plural = '';
+                }
+
+                $translation = $translations->insert($context, $original, $plural);
+
+                if ($translated !== '') {
+                    if ($plural === '') {
+                        $translation->setTranslation($translated);
+                    } else {
+                        foreach (explode("\x00", $translated) as $pluralIndex => $pluralValue) {
+                            if ($pluralIndex === 0) {
+                                $translation->setTranslation($pluralValue);
+                            } else {
+                                $translation->setPluralTranslation($pluralValue, $pluralIndex - 1);
+                            }
+                        }
+                    }
+                }
             }
         }
+
+        return $translations;
     }
 
     /**

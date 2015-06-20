@@ -1,26 +1,32 @@
 <?php
+
 namespace Concrete\Core\Page\Controller;
+
 use Concrete\Core\Block\Block;
 use Concrete\Core\Block\BlockController;
+use Concrete\Core\Foundation\Environment;
 use Concrete\Core\Routing\Redirect;
 use Page;
 use Request;
-use Loader;
 use Controller;
 use Core;
-use \Concrete\Core\Page\View\PageView;
-class PageController extends Controller {
+use Concrete\Core\Page\View\PageView;
+use Symfony\Component\HttpFoundation\Response;
 
+class PageController extends Controller
+{
     protected $supportsPageCache = false;
     protected $action;
     protected $passThruBlocks = array();
     protected $parameters = array();
 
-    public function supportsPageCache() {
+    public function supportsPageCache()
+    {
         return $this->supportsPageCache;
     }
 
-    public function __construct(\Concrete\Core\Page\Page $c) {
+    public function __construct(\Concrete\Core\Page\Page $c)
+    {
         parent::__construct();
         $this->c = $c;
         $this->view = new PageView($this->c);
@@ -29,14 +35,15 @@ class PageController extends Controller {
 
     /**
      * Given either a path or a Page object, this is a shortcut to
-     * 1. Grab the controller of that page.
-     * 2. Grab the view of that controller
+     * 1. Grab the controller of THAT page.
+     * 2. Grab the view of THAT controller
      * 3. Render that view.
      * 4. Exit – so we immediately stop all other output in the controller that
      * called render().
+     *
      * @param @string|\Concrete\Core\Page\Page $var
      */
-    public function render($var)
+    public function replace($var)
     {
         if (!($var instanceof \Concrete\Core\Page\Page)) {
             $var = \Page::getByPath($var);
@@ -51,11 +58,38 @@ class PageController extends Controller {
         exit;
     }
 
-    public function getPageObject() {
+    /**
+     * Given a path to a single page, this command uses the CURRENT controller and renders
+     * the contents of the single page within this request. The current controller is not
+     * replaced, and has already fired (since it is meant to be called from within a view() or
+     * similar method).
+     *
+     * @param @string
+     */
+    public function render($path)
+    {
+        $view = $this->getViewObject();
+
+        $env = Environment::get();
+        $path = trim($path, '/');
+        $a = $path . '/' . FILENAME_COLLECTION_VIEW;
+        $b = $path . '.php';
+
+        $r = $env->getRecord(DIRNAME_PAGES . '/' . $a);
+        if ($r->exists()) {
+            $view->renderSinglePageByFilename($a);
+        } else {
+            $view->renderSinglePageByFilename($b);
+        }
+    }
+
+    public function getPageObject()
+    {
         return $this->c;
     }
 
-    public function getTheme() {
+    public function getTheme()
+    {
         if ($this->theme === null) {
             $theme = parent::getTheme();
             if (!$theme) {
@@ -67,18 +101,22 @@ class PageController extends Controller {
                 $this->theme = $theme;
             }
         }
+
         return $this->theme;
     }
 
-    public function getRequestAction() {
+    public function getRequestAction()
+    {
         return $this->action;
     }
 
-    public function getRequestActionParameters() {
+    public function getRequestActionParameters()
+    {
         return $this->parameters;
     }
 
-    public function getControllerActionPath() {
+    public function getControllerActionPath()
+    {
         if (isset($this->controllerActionPath)) {
             return $this->controllerActionPath;
         }
@@ -88,21 +126,20 @@ class PageController extends Controller {
         }
     }
 
-    public function setupRequestActionAndParameters(Request $request) {
+    public function setupRequestActionAndParameters(Request $request)
+    {
         $task = substr($request->getPath(), strlen($this->c->getCollectionPath()) + 1);
         $task = str_replace('-/', '', $task);
         $taskparts = explode('/', $task);
-        if (isset($taskparts[0]) && $taskparts[0] != '') {
+        if (isset($taskparts[0]) && $taskparts[0] !== '') {
             $method = $taskparts[0];
-        }
-        if ($method == '') {
-            if (is_object($this->c) && is_callable(array($this, $this->c->getCollectionHandle()))) {
-                $method = $this->c->getCollectionHandle();
-            } else {
-                $method = 'view';
-            }
+        } elseif (is_object($this->c) && is_callable(array($this, $this->c->getCollectionHandle()))) {
+            $method = $this->c->getCollectionHandle();
+        } else {
+            $method = 'view';
         }
 
+        $foundTask = false;
         try {
             $r = new \ReflectionMethod(get_class($this), $method);
             $cl = $r->getDeclaringClass();
@@ -111,8 +148,7 @@ class PageController extends Controller {
                     $foundTask = true;
                 }
             }
-        } catch(\Exception $e) {
-
+        } catch (\Exception $e) {
         }
 
         if ($foundTask) {
@@ -144,21 +180,30 @@ class PageController extends Controller {
                 $valid = false;
             }
         }
+
         return $valid;
     }
 
-    protected function setPassThruBlockController(Block $b, BlockController $controller)
+    /**
+     * @access private
+     *
+     * @param Block $b
+     * @param BlockController $controller
+     */
+    public function setPassThruBlockController(Block $b, BlockController $controller)
     {
         $this->passThruBlocks[$b->getBlockID()] = $controller;
     }
 
     public function getPassThruBlockController(Block $b)
     {
-        return $this->passThruBlocks[$b->getBlockID()];
+        $bID = $b->getBlockID();
+
+        return isset($this->passThruBlocks[$bID]) ? $this->passThruBlocks[$bID] : null;
     }
 
-    public function validateRequest() {
-
+    public function validateRequest()
+    {
         $valid = true;
 
         if (!$this->isValidControllerTask($this->action, $this->parameters)) {
@@ -166,13 +211,15 @@ class PageController extends Controller {
             // we check the blocks on the page.
             $blocks = array_merge($this->getPageObject()->getBlocks(), $this->getPageObject()->getGlobalBlocks());
 
-            foreach($blocks as $b) {
+            foreach ($blocks as $b) {
                 $controller = $b->getController();
                 list($method, $parameters) = $controller->getPassThruActionAndParameters($this->parameters);
                 if ($controller->isValidControllerTask($method, $parameters)) {
                     $controller->on_start();
-                    $controller->runAction($method, $parameters);
-
+                    $response = $controller->runAction($method, $parameters);
+                    if ($response instanceof Response) {
+                        return $response;
+                    }
                     // old school blocks have already terminated at this point. They are redirecting
                     // or exiting. But new blocks like topics, etc... can actually rely on their $set
                     // data persisting and being passed into the view.
@@ -181,14 +228,14 @@ class PageController extends Controller {
                     $valid = true;
 
                     // then, we need to save the persisted data that may have been set.
-                    $this->setPassThruBlockController($b, $controller);
+                    $controller->setPassThruBlockController($this);
                 }
             }
 
             if (!$valid) {
                 // finally, we check additional page paths.
                 $paths = $this->getPageObject()->getAdditionalPagePaths();
-                foreach($paths as $path) {
+                foreach ($paths as $path) {
                     if ($path->getPagePath() == $this->request->getPath()) {
                         // This is an additional page path to a page. We 301 redirect.
                         return Redirect::page($this->getPageObject(), 301);
@@ -196,6 +243,7 @@ class PageController extends Controller {
                 }
             }
         }
+
         return $valid;
     }
 }

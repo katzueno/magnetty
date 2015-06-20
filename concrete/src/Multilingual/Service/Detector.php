@@ -17,11 +17,11 @@ class Detector
 
     /**
      *
-     * Returns the preferred locale based on session, cookie,
+     * Returns the preferred section based on session, cookie,
      * user object, default browser (if allowed), and finally
-     * site preferences. Returns a string, not a section.
+     * site preferences. 
      * Since the user's language is not a locale but a language,
-     * attempts to determine best locale for the given language.
+     * attempts to determine best section for the given language.
      * @return Section
      */
     public static function getPreferredSection()
@@ -53,11 +53,11 @@ class Detector
             }
         }
 
-        if (Config::get('concrete.multilingual.use_browser_detected_language')) {
+        if (Config::get('concrete.multilingual.use_browser_detected_locale')) {
             $home = false;
             $locales =  \Punic\Misc::getBrowserLocales();
-            foreach($locales as $locale => $value) {
-                $home = Section::getByLocaleOrLanguage($value);
+            foreach (array_keys($locales) as $locale) {
+                $home = Section::getByLocaleOrLanguage($locale);
                 if ($home) {
                     break;
                 }
@@ -73,6 +73,9 @@ class Detector
 
     public static function setupSiteInterfaceLocalization(Page $c = null)
     {
+        if (\User::isLoggedIn() && Config::get('concrete.multilingual.keep_users_locale')) {
+            return;
+        }
         if (!$c) {
             $c = Page::getCurrentPage();
         }

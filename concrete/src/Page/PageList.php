@@ -110,7 +110,7 @@ class PageList extends DatabaseItemList implements PermissionableListItemInterfa
                 ->leftJoin('pa', 'PageSearchIndex', 'psi', 'psi.cID = if(pa.cID is null, p.cID, pa.cID)')
                 ->leftJoin('p', 'PageTypes', 'pt', 'pt.ptID = if(pa.cID is null, p.ptID, pa.ptID)')
                 ->leftJoin('p', 'CollectionSearchIndexAttributes', 'csi', 'csi.cID = if(pa.cID is null, p.cID, pa.cID)')
-                ->innerJoin('p', 'CollectionVersions', 'cv', 'cv.cID = if(pa.cID is null, p.cID, pa.cID) and cvIsApproved = 1')
+                ->innerJoin('p', 'CollectionVersions', 'cv', 'cv.cID = if(pa.cID is null, p.cID, pa.cID)')
                 ->innerJoin('p', 'Collections', 'c', 'p.cID = c.cID')
                 ->andWhere('p.cIsTemplate = 0 or pa.cIsTemplate = 0');
         } else {
@@ -120,9 +120,15 @@ class PageList extends DatabaseItemList implements PermissionableListItemInterfa
                 ->leftJoin('p', 'PageTypes', 'pt', 'p.ptID = pt.ptID')
                 ->leftJoin('c', 'CollectionSearchIndexAttributes', 'csi', 'c.cID = csi.cID')
                 ->innerJoin('p', 'Collections', 'c', 'p.cID = c.cID')
-                ->innerJoin('p', 'CollectionVersions', 'cv', 'p.cID = cv.cID and cvIsApproved = 1')
+                ->innerJoin('p', 'CollectionVersions', 'cv', 'p.cID = cv.cID')
                 ->andWhere('p.cPointerID < 1')
                 ->andWhere('p.cIsTemplate = 0');
+        }
+
+        if ($this->pageVersionToRetrieve == self::PAGE_VERSION_RECENT) {
+            $query->andWhere('cvID = (select max(cvID) from CollectionVersions where cID = cv.cID)');
+        } else {
+            $query->andWhere('cvIsApproved = 1');
         }
 
         if ($this->isFulltextSearch) {
@@ -309,10 +315,10 @@ class PageList extends DatabaseItemList implements PermissionableListItemInterfa
         $db = \Database::get();
         if (is_array($ptID)) {
             $this->query->andWhere(
-                $this->query->expr()->in('p.ptID', array_map(array($db, 'quote'), $ptID))
+                $this->query->expr()->in('pt.ptID', array_map(array($db, 'quote'), $ptID))
             );
         } else {
-            $this->query->andWhere($this->query->expr()->comparison('p.ptID', '=', ':ptID'));
+            $this->query->andWhere($this->query->expr()->comparison('pt.ptID', '=', ':ptID'));
             $this->query->setParameter('ptID', $ptID, \PDO::PARAM_INT);
         }
     }

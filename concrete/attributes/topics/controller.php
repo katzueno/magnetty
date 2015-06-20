@@ -43,10 +43,22 @@ class Controller extends AttributeTypeController
         // trap dynatree display node / tree node here.
     }
 
+    public function getDisplayValue()
+    {
+        $list = $this->getSelectedOptions();
+        $topics = array();
+        foreach($list as $node) {
+            $topic = Node::getByID($node);
+            if (is_object($topic)) {
+                $topics[] = $topic->getTreeNodeDisplayName();
+            }
+        }
+        return implode(', ', $topics);
+    }
+
     public function getDisplaySanitizedValue()
     {
-        //$this->load();
-        //return parent::getDisplaySanitizedValue();
+        return $this->getDisplayValue();
     }
 
     public function getSelectedOptions()
@@ -168,9 +180,8 @@ class Controller extends AttributeTypeController
 
     public function searchForm($list)
     {
-        //$db = Loader::db();
-        //$list->filterByAttribute($this->attributeKey->getAttributeKeyHandle(), '%' . $this->request('value') . '%', 'like');
-        //return $list;
+        $list->filterByAttribute($this->attributeKey->getAttributeKeyHandle(), $this->request('treeNodeID'));
+        return $list;
     }
 
     public function getSearchIndexValue()
@@ -193,8 +204,16 @@ class Controller extends AttributeTypeController
 
     public function search()
     {
-        //$f = Loader::helper('form');
-        //print $f->text($this->field('value'), $this->request('value'));
+        $this->requireAsset('core/topics');
+        $this->load();
+        $tree = TopicTree::getByID(Loader::helper('security')->sanitizeInt($this->akTopicTreeID));
+        $this->set('tree', $tree);
+        $treeNodeID = $this->request('treeNodeID');
+        if (!$treeNodeID) {
+            $treeNodeID = $this->akTopicParentNodeID;
+        }
+        $this->set('selectedNode', $treeNodeID);
+        $this->set('attributeKey', $this->attributeKey);
     }
 
     public function setNodes($akTopicParentNodeID, $akTopicTreeID)
@@ -295,6 +314,12 @@ class Controller extends AttributeTypeController
 
     }
 
+    public function validateValue()
+    {
+        $val = $this->getValue();
+        return is_object($val);
+    }
+
     public function validateForm($data)
     {
         // TODO: form validation
@@ -305,6 +330,12 @@ class Controller extends AttributeTypeController
         $this->load();
 
         return $this->akTopicParentNodeID;
+    }
+
+    public function getTopicTreeID()
+    {
+        $this->load();
+        return $this->akTopicTreeID;
     }
 
     protected function load()

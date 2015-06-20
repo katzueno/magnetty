@@ -165,12 +165,12 @@ div[data-container=editable-fields] section {
 
 				<div class="form-group">
 					<?php echo $form->label('uPassword', t('Password'))?>
-					<?php echo $form->password('uPassword')?>
+					<?php echo $form->password('uPassword',array('autocomplete' => 'off'))?>
 				</div>
 
 				<div class="form-group">
 					<?php echo $form->label('uPasswordConfirm', t('Confirm Password'))?>
-					<?php echo $form->password('uPasswordConfirm')?>
+					<?php echo $form->password('uPasswordConfirm',array('autocomplete' => 'off'))?>
 				</div>
 
 				<div class="dialog-buttons">
@@ -289,10 +289,7 @@ $(function() {
 		</div>
 
 	<?php } else { ?>
-	<div class="ccm-pane-body">
 		<p><?php echo t('You do not have access to user search. This setting may be changed in the access section of the dashboard settings page.')?></p>
-	</div>
-
 	<?php } ?>
 
 <?php } ?>

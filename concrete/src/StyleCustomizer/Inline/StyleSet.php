@@ -1,16 +1,18 @@
 <?php
+
 namespace Concrete\Core\StyleCustomizer\Inline;
+
 use Concrete\Core\Backup\ContentExporter;
 use Concrete\Core\Backup\ContentImporter;
 use Database;
-use Core;
+use Symfony\Component\HttpFoundation\Request;
+
 /**
  * @Entity
  * @Table(name="StyleCustomizerInlineStyleSets")
  */
 class StyleSet
 {
-
     /**
      * @Id @Column(type="integer")
      * @GeneratedValue
@@ -128,7 +130,6 @@ class StyleSet
      * @Column(type="string")
      */
     protected $marginRight;
-
 
     /**
      * @Column(type="string")
@@ -404,7 +405,6 @@ class StyleSet
         return $this->rotate;
     }
 
-
     public function getID()
     {
         return $this->issID;
@@ -553,22 +553,30 @@ class StyleSet
         return $this->backgroundColor;
     }
 
+    public function getBackgroundImageFileID()
+    {
+        return $this->backgroundImageFileID;
+    }
+
     public function getBackgroundImageFileObject()
     {
         if ($this->backgroundImageFileID) {
             $f = \File::getByID($this->backgroundImageFileID);
+
             return $f;
         }
     }
 
     /**
      * @param $issID
+     *
      * @return \Concrete\Core\Page\Style\Set
      */
     public static function getByID($issID)
     {
         $db = Database::get();
         $em = $db->getEntityManager();
+
         return $em->find('\Concrete\Core\StyleCustomizer\Inline\StyleSet', $issID);
     }
 
@@ -580,9 +588,9 @@ class StyleSet
         $em->flush();
     }
 
-    public function import(\SimpleXMLElement $node)
+    public static function import(\SimpleXMLElement $node)
     {
-        $o = new self;
+        $o = new self();
         $o->setBackgroundColor((string) $node->backgroundColor);
         $filename = (string) $node['backgroundImage'];
         if ($filename) {
@@ -617,9 +625,9 @@ class StyleSet
         $o->setBoxShadowColor((string) $node->boxShadowColor);
         $o->setCustomClass((string) $node->customClass);
         $o->save();
+
         return $o;
     }
-
 
     public function export(\SimpleXMLElement $node)
     {
@@ -653,5 +661,125 @@ class StyleSet
         $node->addChild('boxShadowSpread', $this->getBoxShadowSpread());
         $node->addChild('boxShadowColor', $this->getBoxShadowColor());
         $node->addChild('customClass', $this->getCustomClass());
+    }
+
+    /**
+     * If the request contains any fields that are valid to save as a style set, we return the style set object
+     * pre-save. If it's not (e.g. there's a background repeat but no actual background image, empty strings, etc...)
+     * then we return null.
+     * return \Concrete\Core\StyleCustomizer\Inline\StyleSet|null
+     * @param Request $request
+     */
+    public static function populateFromRequest(Request $request)
+    {
+        $r = $request->request->all();
+        $set = new StyleSet();
+        $return = false;
+        if (trim($r['backgroundColor']) != '') {
+            $set->setBackgroundColor($r['backgroundColor']);
+            $set->setBackgroundRepeat($r['backgroundRepeat']);
+            $return = true;
+        }
+
+        $fID = intval($r['backgroundImageFileID']);
+        if ($fID > 0) {
+            $set->setBackgroundImageFileID($fID);
+            $set->setBackgroundRepeat($r['backgroundRepeat']);
+            $return = true;
+        }
+
+        if (trim($r['linkColor']) != '') {
+            $set->setLinkColor($r['linkColor']);
+            $return = true;
+        }
+
+        if (trim($r['textColor']) != '') {
+            $set->setTextColor($r['textColor']);
+            $return = true;
+        }
+
+        if (trim($r['baseFontSize']) && trim($r['baseFontSize']) != '0px') {
+            $set->setBaseFontSize($r['baseFontSize']);
+            $return = true;
+        }
+
+        if (trim($r['marginTop']) && trim($r['marginTop']) != '0px') {
+            $set->setMarginTop($r['marginTop']);
+            $return = true;
+        }
+
+        if (trim($r['marginRight']) && trim($r['marginRight']) != '0px') {
+            $set->setMarginRight($r['marginRight']);
+            $return = true;
+        }
+
+        if (trim($r['marginBottom']) && trim($r['marginBottom']) != '0px') {
+            $set->setMarginBottom($r['marginBottom']);
+            $return = true;
+        }
+
+        if (trim($r['marginLeft']) && trim($r['marginLeft']) != '0px') {
+            $set->setMarginLeft($r['marginLeft']);
+            $return = true;
+        }
+
+        if (trim($r['paddingTop']) && trim($r['paddingTop']) != '0px') {
+            $set->setPaddingTop($r['paddingTop']);
+            $return = true;
+        }
+
+        if (trim($r['paddingRight']) && trim($r['paddingRight']) != '0px') {
+            $set->setPaddingRight($r['paddingRight']);
+            $return = true;
+        }
+
+        if (trim($r['paddingBottom']) && trim($r['paddingBottom']) != '0px') {
+            $set->setPaddingBottom($r['paddingBottom']);
+            $return = true;
+        }
+
+        if (trim($r['paddingLeft']) && trim($r['paddingLeft']) != '0px') {
+            $set->setPaddingLeft($r['paddingLeft']);
+            $return = true;
+        }
+
+        if (trim($r['borderWidth']) && trim($r['borderWidth']) != '0px') {
+            $set->setBorderWidth($r['borderWidth']);
+            $set->setBorderStyle($r['borderStyle']);
+            $set->setBorderColor($r['borderColor']);
+            $set->setBorderRadius($r['borderRadius']);
+            $return = true;
+        }
+
+        if (trim($r['alignment']) != '') {
+            $set->setAlignment($r['alignment']);
+            $return = true;
+        }
+
+        if ($r['rotate']) {
+            $set->setRotate($r['rotate']);
+            $return = true;
+        }
+
+        if ((trim($r['boxShadowHorizontal']) && trim($r['boxShadowHorizontal']) != '0px')
+        || (trim($r['boxShadowVertical']) && trim($r['boxShadowVertical']) != '0px')) {
+            $set->setBoxShadowBlur($r['boxShadowBlur']);
+            $set->setBoxShadowColor($r['boxShadowColor']);
+            $set->setBoxShadowHorizontal($r['boxShadowHorizontal']);
+            $set->setBoxShadowVertical($r['boxShadowVertical']);
+            $set->setBoxShadowSpread($r['boxShadowSpread']);
+            $return = true;
+        }
+
+        if ($r['customClass']) {
+            $set->setCustomClass($r['customClass']);
+            $return = true;
+        }
+
+        if ($return) {
+            return $set;
+        }
+
+        return null;
     }
 }

@@ -27,6 +27,8 @@ $boxShadowBlur = '';
 $boxShadowSpread = '';
 $boxShadowColor = '';
 $customClass = '';
+$sliderMin = \Config::get('concrete.limits.style_customizer.size_min', -50);
+$sliderMax = \Config::get('concrete.limits.style_customizer.size_max', 200);
 $set = $style->getStyleSet();
 if (is_object($set)) {
     $backgroundColor = $set->getBackgroundColor();
@@ -64,7 +66,7 @@ $repeatOptions = array(
     'repeat' => t('Tile')
 );
 $borderOptions = array(
-    'none' => t('None'),
+    '' => t('None'),
     'solid' => t('Solid'),
     'dotted' => t('Dotted'),
     'dashed' => t('Dashed'),
@@ -118,7 +120,7 @@ $form = Core::make('helper/form');
             <hr />
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Base Font Size')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="0" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                 <span class="ccm-inline-style-slider-display-value">
                     <input type="text" name="baseFontSize" id="baseFontSize" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $baseFontSize ? $baseFontSize : '0px' ?>" <?php echo $baseFontSize ? '' : 'disabled' ?> autocomplete="off" />
                 </span>
@@ -165,14 +167,14 @@ $form = Core::make('helper/form');
             </div>
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Width')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="0" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                <span class="ccm-inline-style-slider-display-value">
                 <input type="text" name="borderWidth" id="borderWidth" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $borderWidth ? $borderWidth : '0px' ?>" <?php echo $borderWidth ? '' : 'disabled' ?> autocomplete="off" />
             </span>
             </div>
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Radius')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="0" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                 <span class="ccm-inline-style-slider-display-value">
                     <input type="text" name="borderRadius" id="borderRadius" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $borderRadius ? $borderRadius : '0px' ?>" <?php echo $borderRadius ? '' : 'disabled' ?> autocomplete="off" />
                 </span>
@@ -184,28 +186,28 @@ $form = Core::make('helper/form');
             <h3><?php echo t('Padding')?></h3>
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Top')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="0" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                 <span class="ccm-inline-style-slider-display-value">
                     <input type="text" name="paddingTop" id="paddingTop" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $paddingTop ? $paddingTop : '0px' ?>" <?php echo $paddingTop ? '' : 'disabled' ?> autocomplete="off" />
                 </span>
             </div>
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Right')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="0" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                 <span class="ccm-inline-style-slider-display-value">
                     <input type="text" name="paddingRight" id="paddingRight" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $paddingRight ? $paddingRight : '0px' ?>" <?php echo $paddingRight ? '' : 'disabled' ?> autocomplete="off" />
                 </span>
             </div>
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Bottom')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="0" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                 <span class="ccm-inline-style-slider-display-value">
                     <input type="text" name="paddingBottom" id="paddingBottom" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $paddingBottom ? $paddingBottom : '0px' ?>" <?php echo $paddingBottom ? '' : 'disabled' ?> autocomplete="off" />
                 </span>
             </div>
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Left')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="0" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                <span class="ccm-inline-style-slider-display-value">
                 <input type="text" name="paddingLeft" id="paddingLeft" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $paddingLeft ? $paddingLeft : '0px' ?>" <?php echo $paddingLeft ? '' : 'disabled' ?> autocomplete="off" />
             </span>
@@ -216,28 +218,28 @@ $form = Core::make('helper/form');
                 <h3><?php echo t('Margin')?></h3>
                 <div>
                     <span class="ccm-inline-style-slider-heading"><?php echo t('Top')?></span>
-                    <div class="ccm-inline-style-sliders" data-style-slider-min="-50" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                    <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                     <span class="ccm-inline-style-slider-display-value">
                         <input type="text" name="marginTop" id="marginTop" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $marginTop ? $marginTop : '0px' ?>" <?php echo $marginTop ? '' : 'disabled' ?> autocomplete="off" />
                     </span>
                 </div>
                 <div>
                     <span class="ccm-inline-style-slider-heading"><?php echo t('Right')?></span>
-                    <div class="ccm-inline-style-sliders" data-style-slider-min="-50" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                    <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                     <span class="ccm-inline-style-slider-display-value">
                         <input type="text" name="marginRight" id="marginRight" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $marginRight ? $marginRight : '0px' ?>" <?php echo $marginRight ? '' : 'disabled' ?> autocomplete="off" />
                     </span>
                 </div>
                 <div>
                     <span class="ccm-inline-style-slider-heading"><?php echo t('Bottom')?></span>
-                    <div class="ccm-inline-style-sliders" data-style-slider-min="-50" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                    <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                     <span class="ccm-inline-style-slider-display-value">
                         <input type="text" name="marginBottom" id="marginBottom" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $marginBottom ? $marginBottom : '0px' ?>" <?php echo $marginBottom ? '' : 'disabled' ?> autocomplete="off" />
                     </span>
                 </div>
                 <div>
                     <span class="ccm-inline-style-slider-heading"><?php echo t('Left')?></span>
-                    <div class="ccm-inline-style-sliders" data-style-slider-min="-50" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                    <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                     <span class="ccm-inline-style-slider-display-value">
                         <input type="text" name="marginLeft" id="marginLeft" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $marginLeft ? $marginLeft : '0px' ?>" <?php echo $marginLeft ? '' : 'disabled' ?> autocomplete="off" />
                     </span>
@@ -257,28 +259,28 @@ $form = Core::make('helper/form');
             <hr />
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Horizontal Position')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="0" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                 <span class="ccm-inline-style-slider-display-value">
                     <input type="text" name="boxShadowHorizontal" id="boxShadowHorizontal" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $boxShadowHorizontal ? $boxShadowHorizontal : '0px' ?>" <?php echo $boxShadowHorizontal ? '' : 'disabled' ?> autocomplete="off" />
                 </span>
             </div>
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Vertical Position')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="0" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                 <span class="ccm-inline-style-slider-display-value">
                     <input type="text" name="boxShadowVertical" id="boxShadowVertical" data-value-format="px" class="ccm-inline-style-slider-value" value="<?php echo $boxShadowVertical ? $boxShadowVertical : '0px' ?>" <?php echo $boxShadowVertical ? '' : 'disabled' ?> autocomplete="off" />
                 </span>
             </div>
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Blur')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="0" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                 <span class="ccm-inline-style-slider-display-value">
                     <input type="text" name="boxShadowBlur" id="boxShadowBlur" class="ccm-inline-style-slider-value" data-value-format="px" value="<?php echo $boxShadowBlur ? $boxShadowBlur : '0px' ?>" <?php echo $boxShadowBlur ? '' : 'disabled' ?> autocomplete="off" />
                 </span>
             </div>
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Spread')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="-50" data-style-slider-max="200" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                 <span class="ccm-inline-style-slider-display-value">
                     <input type="text" name="boxShadowSpread" id="boxShadowSpread" class="ccm-inline-style-slider-value" data-value-format="px" value="<?php echo $boxShadowSpread ? $boxShadowSpread : '0px' ?>" <?php echo $boxShadowSpread ? '' : 'disabled' ?> autocomplete="off" />
                 </span>
@@ -287,7 +289,7 @@ $form = Core::make('helper/form');
             <h3><?php echo t('Rotate')?></h3>
             <div>
                 <span class="ccm-inline-style-slider-heading"><?php echo t('Rotation (in degrees)')?></span>
-                <div class="ccm-inline-style-sliders" data-style-slider-min="0" data-style-slider-max="360" data-style-slider-default-setting="0"></div>
+                <div class="ccm-inline-style-sliders" data-style-slider-min="<?php echo $sliderMin ?>" data-style-slider-max="<?php echo $sliderMax ?>" data-style-slider-default-setting="0"></div>
                <span class="ccm-inline-style-slider-display-value">
                 <input type="text" name="rotate" id="rotate" class="ccm-inline-style-slider-value ccm-slider-value-unit-appended" data-value-format="" value="<?php echo $rotate ? $rotate : '0' ?>" autocomplete="off" /> &deg;
             </span>

@@ -64,7 +64,7 @@ $searchInstance = Loader::helper('text')->entities($_REQUEST['searchInstance']);
                 $error .= $e->getMessage();
             }
             foreach($con1 as $con) {
-                $contents[$con['name']] = $con['name'];
+                $contents[$con['basename']] = $con['basename'];
             }
             if (count($contents) > 0) { ?>
                 <form method="post" id="ccm-file-manager-replace-incoming" class="form-inline" data-dialog-form="replace-file" action="<?php echo REL_DIR_FILES_TOOLS_REQUIRED?>/files/importers/incoming">
@@ -108,7 +108,7 @@ $searchInstance = Loader::helper('text')->entities($_REQUEST['searchInstance']);
         $('#ccm-file-manager-replace-incoming,#ccm-file-manager-replace-remote,#ccm-file-manager-replace-upload').concreteAjaxForm();
         ConcreteEvent.subscribe('AjaxFormSubmitSuccess', function(e, data) {
             if (data.form == 'replace-file') {
-                ConcreteEvent.publish('FileManagerUpdateRequestComplete', {files: data.response.files});
+                ConcreteEvent.publish('FileManagerReplaceFileComplete', {files: data.response.files});
             }
         });
     });

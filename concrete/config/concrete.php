@@ -7,9 +7,9 @@ return array(
      *
      * @var string
      */
-    'version'           => '5.7.3.1',
-    'version_installed' => '5.7.3.1',
-    'version_db' => '20150109000000', // the key of the latest database migration - corresponds to 5.7.3
+    'version'           => '5.7.4.2',
+    'version_installed' => '5.7.4.2',
+    'version_db' => '20150504000000', // the key of the latest database migration
 
     /**
      * Installation status
@@ -165,6 +165,13 @@ return array(
         'pages'                    => false,
 
         /**
+         * Use Doctrine development mode
+         *
+         * @var bool
+         */
+        'doctrine_dev_mode'        => false,
+
+        /**
          * How long to cache full page
          *
          * @var string
@@ -177,7 +184,6 @@ return array(
          * @var int
          */
         'full_page_lifetime_value' => null,
-        'identifier'               => md5(str_replace(array('https://', 'http://'), '', BASE_URL) . DIR_REL),
 
 
         'directory'   => DIR_FILES_UPLOADED_STANDARD . '/cache',
@@ -291,7 +297,22 @@ return array(
         )
     ),
 
-    /**
+    'editor' => array(
+        'concrete' => array(
+            'enable_filemanager' => true,
+            'enable_sitemap' => true
+        ),
+        'plugins' => array(
+            'selected' => array(
+                'concrete5lightbox',
+                'undoredo',
+                'specialcharacters',
+                'table'
+            )
+        )
+    ),
+
+/**
      * ------------------------------------------------------------------------
      * Email settings
      * ------------------------------------------------------------------------
@@ -390,12 +411,12 @@ return array(
         'package_backup_directory'      => DIR_FILES_UPLOADED_STANDARD . '/trash',
         'enable_progressive_page_reindex'      => true,
         'mobile_theme_id'               => 0,
-        'seen_introduction'             => false,
         'sitemap_approve_immediately'   => true,
         'enable_translate_locale_en_us' => false,
         'page_search_index_lifetime'    => 259200,
         'enable_trash_can'              => true,
-        'app_version_display_in_header' => true
+        'app_version_display_in_header' => true,
+        'default_jpeg_image_compression'     => 80
     ),
 
     'theme' => array(
@@ -407,7 +428,12 @@ return array(
 
         'enable_auto_update_core'       => false,
         'enable_auto_update_packages'   => false,
-        'enable_permissions_protection' => true
+        'enable_permissions_protection' => true,
+        'check_threshold' => 172800,
+        'services' => array(
+            'get_available_updates' => 'http://www.concrete5.org/tools/update_core',
+            'inspect_update' => 'http://www.concrete5.org/tools/inspect_update'
+        )
     ),
     'paths'             => array(
         'trash'  => '/!trash',
@@ -445,8 +471,7 @@ return array(
     'sitemap_xml'       => array(
         'file'      => 'sitemap.xml',
         'frequency' => 'weekly',
-        'priority'  => 0.5,
-        'base_url'  => BASE_URL
+        'priority'  => 0.5
     ),
 
     /**
@@ -467,7 +492,14 @@ return array(
          *
          * @var bool
          */
-        'toolbar_large_font' => false
+        'toolbar_large_font' => false,
+
+        /**
+         * Show help system
+         *
+         * @var bool
+         */
+        'display_help_system' => true
     ),
 
     /**
@@ -497,6 +529,11 @@ return array(
         'background_feed'        => '//backgroundimages.concrete5.org/wallpaper',
         'background_feed_secure' => 'https://backgroundimages.concrete5.org/wallpaper',
         'background_info'        => 'http://backgroundimages.concrete5.org/get_image_data.php',
+        'help'                   => array(
+            'developer'          => 'http://www.concrete5.org/documentation/developers/5.7/',
+            'user'          => 'http://www.concrete5.org/documentation/using-concrete5-7',
+            'forum'          => 'http://www.concrete5.org/community/forums'
+        ),
         'paths'                  => array(
             'menu_help_service' => '/tools/get_remote_help_list/',
             'theme_preview'     => '/tools/preview_theme/',
@@ -550,11 +587,11 @@ return array(
         'handler'      => 'file',
         'max_lifetime' => 7200,
         'cookie'       => array(
-            'path'     => '',
-            'lifetime' => 7200,
-            'domain'   => '',
-            'secure'   => false,
-            'httponly' => false
+            'cookie_path'     => false, // set a specific path here if you know it, otherwise it'll default to relative
+            'cookie_lifetime' => 0,
+            'cookie_domain'   => false,
+            'cookie_secure'   => false,
+            'cookie_httponly' => false
         )
     ),
 
@@ -784,15 +821,18 @@ return array(
          *
          * @var bool
          */
-        'url_rewriting'        => false,
-        'url_rewriting_all'        => false,
-        'redirect_to_base_url' => false,
-        'trailing_slash'       => false,
-        'title_format'         => '%1$s :: %2$s',
-        'page_path_separator'  => '-',
-        'group_name_separator' => ' / ',
-        'segment_max_length'   => 128,
-        'paging_string'        => 'ccm_paging_p'
+        'url_rewriting'           => false,
+        'url_rewriting_all'       => false,
+        'redirect_to_canonical_url'  => false,
+        'canonical_url'          => null,
+        'canonical_ssl_url'          => null,
+        'trailing_slash'          => false,
+        'title_format'            => '%1$s :: %2$s',
+        'title_segment_separator' => ' :: ',
+        'page_path_separator'     => '-',
+        'group_name_separator'    => ' / ',
+        'segment_max_length'      => 128,
+        'paging_string'           => 'ccm_paging_p'
     ),
 
     /**
@@ -801,13 +841,17 @@ return array(
      * ------------------------------------------------------------------------
      */
     'statistics'        => array(
-        'track_page_views' => true
+//        'track_page_views' => true
     ),
     'limits'            => array(
         'sitemap_pages'           => 100,
         'delete_pages'            => 10,
         'copy_pages'              => 10,
         'page_search_index_batch' => 200,
-        'job_queue_batch'         => 10
+        'job_queue_batch'         => 10,
+        'style_customizer' => array(
+            'size_min' => -50,
+            'size_max' => 200,
+        )
     )
 );

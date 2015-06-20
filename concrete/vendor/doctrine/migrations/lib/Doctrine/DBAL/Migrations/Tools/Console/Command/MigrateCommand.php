@@ -40,9 +40,10 @@ class MigrateCommand extends AbstractCommand
         $this
             ->setName('migrations:migrate')
             ->setDescription('Execute a migration to a specified version or the latest available version.')
-            ->addArgument('version', InputArgument::OPTIONAL, 'The version to migrate to.', null)
+            ->addArgument('version', InputArgument::OPTIONAL, 'The version number (YYYYMMDDHHMMSS) or alias (first, prev, next, latest) to migrate to.', 'latest')
             ->addOption('write-sql', null, InputOption::VALUE_NONE, 'The path to output the migration SQL file instead of executing it.')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Execute the migration as a dry run.')
+            ->addOption('query-time', null, InputOption::VALUE_NONE, 'Time all the queries individually.')
             ->setHelp(<<<EOT
 The <info>%command.name%</info> command executes a migration to a specified version or the latest available version:
 
@@ -51,6 +52,10 @@ The <info>%command.name%</info> command executes a migration to a specified vers
 You can optionally manually specify the version you wish to migrate to:
 
     <info>%command.full_name% YYYYMMDDHHMMSS</info>
+
+You can specify the version you wish to migrate to using an alias:
+
+    <info>%command.full_name% prev</info>
 
 You can also execute the migration as a <comment>--dry-run</comment>:
 
@@ -64,6 +69,9 @@ Or you can also execute the migration without a warning message which you need t
 
     <info>%command.full_name% --no-interaction</info>
 
+You can also time all the different queries if you wanna know which one is taking so long:
+
+    <info>%command.full_name% --query-time</info>
 EOT
         );
 
@@ -72,8 +80,6 @@ EOT
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $version = $input->getArgument('version');
-
         $configuration = $this->getMigrationConfiguration($input, $output);
         $migration = new Migration($configuration);
 
@@ -81,9 +87,28 @@ EOT
 
         $noInteraction = !$input->isInteractive();
 
+        $timeAllqueries = $input->getOption('query-time');
+
         $executedMigrations = $configuration->getMigratedVersions();
         $availableMigrations = $configuration->getAvailableVersions();
         $executedUnavailableMigrations = array_diff($executedMigrations, $availableMigrations);
+
+        $versionAlias = $input->getArgument('version');
+        $version = $configuration->resolveVersionAlias($versionAlias);
+        if ($version === null) {
+            switch ($versionAlias) {
+                case 'prev':
+                    $output->writeln('<error>Already at first version.</error>');
+                    break;
+                case 'next':
+                    $output->writeln('<error>Already at latest version.</error>');
+                    break;
+                default:
+                    $output->writeln('<error>Unknown version: ' . $output->getFormatter()->escape($versionAlias) . '</error>');
+            }
+
+            return 1;
+        }
 
         if ($executedUnavailableMigrations) {
             $output->writeln(sprintf('<error>WARNING! You have %s previously executed migrations in the database that are not registered migrations.</error>', count($executedUnavailableMigrations)));
@@ -105,7 +130,7 @@ EOT
             $path = is_bool($path) ? getcwd() : $path;
             $migration->writeSqlFile($path, $version);
         } else {
-            $dryRun = $input->getOption('dry-run') ? true : false;
+            $dryRun = (boolean) $input->getOption('dry-run');
 
             // warn the user if no dry run and interaction is on
             if (! $dryRun && ! $noInteraction) {
@@ -117,7 +142,7 @@ EOT
                 }
             }
 
-            $sql = $migration->migrate($version, $dryRun);
+            $sql = $migration->migrate($version, $dryRun, $timeAllqueries);
 
             if (! $sql) {
                 $output->writeln('<comment>No migrations to execute.</comment>');

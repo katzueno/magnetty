@@ -59,11 +59,11 @@ if($registerSuccess) { ?>
                     </div>
                     <div class="form-group">
 						<?php echo $form->label('uPassword',t('Password'))?>
-					    <?php echo $form->password('uPassword')?>
+					    <?php echo $form->password('uPassword',array('autocomplete' => 'off'))?>
 					</div>
                     <div class="form-group">
 						<?php echo $form->label('uPasswordConfirm',t('Confirm Password'))?>
-						<?php echo $form->password('uPasswordConfirm')?>
+						<?php echo $form->password('uPasswordConfirm',array('autocomplete' => 'off'))?>
 					</div>
 
 				</fieldset>

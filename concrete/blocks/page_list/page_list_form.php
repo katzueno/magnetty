@@ -8,9 +8,8 @@ $form = Loader::helper('form/page_selector');
         <input type="hidden" name="pageListToolsDir" value="<?php echo Loader::helper('concrete/urls')->getBlockTypeToolsURL($bt) ?>/"/>
 
         <fieldset>
-            <legend><?php echo t('Settings') ?></legend>
-        </fieldset>
-
+        <legend><?php echo t('Settings') ?></legend>
+        
         <div class="form-group">
             <label class='control-label'><?php echo t('Number of Pages to Display') ?></label>
             <input type="text" name="num" value="<?php echo $num ?>" class="form-control">
@@ -40,8 +39,63 @@ $form = Loader::helper('form/page_selector');
             }
             ?>
         </div>
+		</fieldset>
+		
+		<fieldset>
+            <legend><?php echo t('Topics') ?></legend>
+        <div class="radio">
+            <label>
+                <input type="radio" name="topicFilter" id="topicFilter"
+                       value="" <?php if (!$filterByRelated && !$filterByCustomTopic) { ?> checked<?php } ?> />
+                <?php echo t('No topic filtering') ?>
+            </label>
+        </div>
+        <div class="radio">
+            <label>
+                <input type="radio" name="topicFilter" id="topicFilterCustom"
+                       value="custom" <?php if ($filterByCustomTopic) { ?> checked<?php } ?>>
+                <?php echo t('Custom Topic') ?>
+            </label>
+        </div>
+        <div class="radio">
+            <label>
+                <input type="radio" name="topicFilter" id="topicFilterRelated"
+                       value="related" <?php if ($filterByRelated) { ?> checked<?php } ?> >
+                <?php echo t('Related Topic') ?>
+            </label>
+        </div>
+        <div data-row="custom-topic">
+            <div class="form-group">
+                <select class="form-control" name="customTopicAttributeKeyHandle" id="customTopicAttributeKeyHandle">
+                    <option value=""><?php echo t('Choose topics attribute.')?></option>
+                    <?php foreach($attributeKeys as $attributeKey) {
+                        $attributeController = $attributeKey->getController();
+                        ?>
+                        <option data-topic-tree-id="<?php echo $attributeController->getTopicTreeID()?>" value="<?php echo $attributeKey->getAttributeKeyHandle()?>" <?php if ($attributeKey->getAttributeKeyHandle() == $customTopicAttributeKeyHandle) { ?>selected<?php } ?>><?php echo $attributeKey->getAttributeKeyDisplayName()?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="tree-view-container">
+                <div class="tree-view-template">
+                </div>
+            </div>
+            <input type="hidden" name="customTopicTreeNodeID" value="<?php echo $customTopicTreeNodeID ?>">
 
-        <legend><?php echo t('Filtering') ?></legend>
+        </div>
+        <div data-row="related-topic">
+            <div class="form-group">
+                <span class="help-block"><?php echo t('Allows other blocks like the topic list block to pass search criteria to this page list block.')?></span>
+            <select class="form-control" name="relatedTopicAttributeKeyHandle" id="relatedTopicAttributeKeyHandle">
+                <option value=""><?php echo t('Choose topics attribute.')?></option>
+                <?php foreach($attributeKeys as $attributeKey) { ?>
+                    <option value="<?php echo $attributeKey->getAttributeKeyHandle()?>" <?php if ($attributeKey->getAttributeKeyHandle() == $relatedTopicAttributeKeyHandle) { ?>selected<?php } ?>><?php echo $attributeKey->getAttributeKeyDisplayName()?></option>
+                <?php } ?>
+            </select>
+        </div>
+        </fieldset>
+
+        <fieldset>
+        <legend><?php echo t('Other Filters') ?></legend>
         <div class="checkbox">
             <label>
                 <input <?php if (!is_object($featuredAttribute)) { ?> disabled <?php } ?> type="checkbox" name="displayFeaturedOnly"
@@ -69,25 +123,11 @@ $form = Loader::helper('form/page_selector');
                 <input type="checkbox" name="enableExternalFiltering" value="1" <?php if ($enableExternalFiltering) { ?>checked<?php } ?> />
                 <?php echo t('Enable Other Blocks to Filter This Page List.') ?>
             </label>
-            <span class="help-block"><?php echo t('Allows other blocks like the topic list block to pass search criteria to this page list block.')?></span>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" name="filterByRelated"
-                       value="1" <?php if ($filterByRelated == 1) { ?> checked <?php } ?> />
-                <?php echo t('Filter by Related Topic.') ?>
-            </label>
         </div>
 
-        <div class="form-group" data-row="related-topic">
-            <select class="form-control" name="relatedTopicAttributeKeyHandle" id="relatedTopicAttributeKeyHandle">
-                    <option value=""><?php echo t('Choose topics attribute.')?></option>
-                <?php foreach($attributeKeys as $attributeKey) { ?>
-                    <option value="<?php echo $attributeKey->getAttributeKeyHandle()?>" <?php if ($attributeKey->getAttributeKeyHandle() == $relatedTopicAttributeKeyHandle) { ?>selected<?php } ?>><?php echo $attributeKey->getAttributeKeyDisplayName()?></option>
-                <?php } ?>
-            </select>
-        </div>
-
+		</fieldset>
+		
+		<fieldset>
         <legend><?php echo t('Pagination') ?></legend>
         <div class="checkbox">
             <label>
@@ -95,7 +135,9 @@ $form = Loader::helper('form/page_selector');
                 <?php echo t('Display pagination interface if more items are available than are displayed.') ?>
             </label>
         </div>
-
+		</fieldset>
+		
+		<fieldset>
         <legend><?php echo t('Location') ?></legend>
         <div class="radio">
             <label>
@@ -138,7 +180,9 @@ $form = Loader::helper('form/page_selector');
                 </div>
             </div>
         </div>
-
+		</fieldset>
+		
+		<fieldset>
         <legend><?php echo t('Sort') ?></legend>
         <div class="form-group">
             <select name="orderBy" class="form-control">
@@ -162,7 +206,9 @@ $form = Loader::helper('form/page_selector');
                 </option>
             </select>
         </div>
-
+		</fieldset>
+		
+		<fieldset>
         <legend><?php echo t('Output') ?></legend>
         <div class="form-group">
             <label class="control-label"><?php echo t('Provide RSS Feed') ?></label>
@@ -194,7 +240,7 @@ $form = Loader::helper('form/page_selector');
                     <div class="form-group">
                         <label class="control-label"><?php echo t('RSS Feed Location') ?></label>
                         <div class="input-group">
-                            <span class="input-group-addon"><?php echo BASE_URL . DIR_REL . '/' . DISPATCHER_FILENAME?>/rss/</span>
+                            <span class="input-group-addon"><?php echo URL::to('/rss')?>/</span>
                             <input type="text" name="rssHandle" value="" />
                         </div>
                     </div>
@@ -318,6 +364,7 @@ $form = Loader::helper('form/page_selector');
             <label class="control-label"><?php echo t('Message to Display When No Pages Listed.') ?></label>
             <textarea class="form-control" name="noResultsMessage"><?php echo $noResultsMessage?></textarea>
         </div>
+        <fieldset>
 
 
         <div class="loader">
@@ -326,15 +373,15 @@ $form = Loader::helper('form/page_selector');
     </div>
 
     <div class="col-xs-6" id="ccm-tab-content-page-list-preview">
+        <fieldset>
+        <legend><?php echo t('Included Pages') ?></legend>
         <div class="preview">
-            <fieldset>
-                <legend><?php echo t('Included Pages') ?></legend>
-            </fieldset>
-            <div class="render">
+            	<div class="render">
 
-            </div>
-            <div class="cover"></div>
+            	</div>
+            	<div class="cover"></div>
         </div>
+         </fieldset>
     </div>
 
 </div>
@@ -367,13 +414,46 @@ $form = Loader::helper('form/page_selector');
 <script type="application/javascript">
     Concrete.event.publish('pagelist.edit.open');
     $(function() {
-        $('input[name=filterByRelated]').on('change', function() {
-            if ($(this).is(':checked')) {
+        $('input[name=topicFilter]').on('change', function() {
+            if ($(this).val() == 'related') {
                 $('div[data-row=related-topic]').show();
+                $('div[data-row=custom-topic]').hide();
+            } else if ($(this).val() == 'custom') {
+                $('div[data-row=custom-topic]').show();
+                $('div[data-row=related-topic]').hide();
             } else {
                 $('div[data-row=related-topic]').hide();
+                $('div[data-row=custom-topic]').hide();
             }
-        }).trigger('change');
+        });
+
+        var treeViewTemplate = $('.tree-view-template');
+
+        $('select[name=customTopicAttributeKeyHandle]').on('change', function() {
+            var toolsURL = '<?php echo Loader::helper('concrete/urls')->getToolsURL('tree/load'); ?>';
+            var chosenTree = $(this).find('option:selected').attr('data-topic-tree-id');
+            $('.tree-view-template').remove();
+            if (!chosenTree) {
+                return;
+            }
+            $('.tree-view-container').append(treeViewTemplate);
+            $('.tree-view-template').ccmtopicstree({
+                'treeID': chosenTree,
+                'chooseNodeInForm': true,
+                'selectNodesByKey': [<?php echo intval($customTopicTreeNodeID)?>],
+                'onSelect' : function(select, node) {
+                    if (select) {
+                        $('input[name=customTopicTreeNodeID]').val(node.data.key);
+                    } else {
+                        $('input[name=customTopicTreeNodeID]').val('');
+                    }
+                }
+            });
+        });
+        $('input[name=topicFilter]:checked').trigger('change');
+        if ($('#topicFilterCustom').is(':checked')) {
+            $('select[name=customTopicAttributeKeyHandle]').trigger('change');
+        }
     });
 
 </script>

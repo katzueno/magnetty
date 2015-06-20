@@ -7,7 +7,7 @@
 <div class='form-group'>
     <?php echo $form->label('apisecret', t('App Secret')) ?>
     <div class="input-group">
-        <?php echo $form->password('apisecret', $apisecret) ?>
+        <?php echo $form->password('apisecret', $apisecret, array('autocomplete' => 'off')) ?>
         <span class="input-group-btn">
         <button id="showsecret" class="btn btn-warning" type="button"><?php echo t('Show secret key') ?></button>
       </span>

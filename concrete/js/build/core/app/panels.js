@@ -271,10 +271,12 @@ function ConcretePanel(options) {
         $content.load(options.url + '?cID=' + CCM_CID + options.data, function () {
             jQuery.fn.dialog.hideLoader();
             $content.find('.launch-tooltip').tooltip({'container': '#ccm-tooltip-holder'});
+            $content.find('a[data-help-notification-toggle]').concreteHelpLauncher();
             obj.loadPanelDetailActions($content);
 
             _.defer(function() {
                 Concrete.event.publish('PanelOpenDetail', {
+                    panel: options,
                     container: $content
                 });
             });
@@ -420,6 +422,10 @@ function ConcretePanel(options) {
         } else {
             show.call(this);
         }
+
+        // hide mobile menu
+        $('.ccm-toolbar-mobile-menu-button').removeClass('ccm-mobile-close');
+        $('.ccm-mobile-menu-overlay').slideUp();
     }
 
 }
@@ -453,10 +459,18 @@ var ConcretePanelManager = (function ConcretePanelManagerGenerator() {
         /**
          * Hides all panels, exit preview mode, hides detail content if active, etc..
          */
-        exitPanelMode: function () {
+        exitPanelMode: function (callback) {
+            callback = callback || $.noop;
+            var active = 0;
             for (var i = 0; i < panels.length; i++) {
                 if (panels[i].isOpen) {
-                    panels[i].hide();
+                    active++;
+                    panels[i].hide(function() {
+                        active--;
+                        if (active == 0) {
+                            callback.call(null);
+                        }
+                    });
                 }
             }
         },

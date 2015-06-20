@@ -35,7 +35,7 @@ if ($akSelectAllowMultipleValues && $akSelectAllowOtherValues) { // display auto
 		}
 	</style>
 
-<div class="ccm-attribute-type-select-autocomplete">
+<div class="ccm-attribute ccm-attribute-select ccm-attribute-type-select-autocomplete">
 
 	<div id="selectedAttrValueRows_<?php echo $attrKeyID;?>" class="well well-small clearfix">
 		<h6><?php echo t('Selected Options')?></h6>
@@ -57,7 +57,7 @@ if ($akSelectAllowMultipleValues && $akSelectAllowOtherValues) { // display auto
 			foreach($vals as $v) { ?>
 				<div class="newAttrValue">
 					<?php echo $form->hidden($this->field('atSelectNewOption') . '[]', $v)?>
-					<span class="badge"><?php echo $v?></span>
+					<span class="badge"><?php echo h($v)?></span>
 					<a class="text-error" title="<?php echo $removeOptionText?>" onclick="ccmAttributeTypeSelectTagHelper<?php echo $attrKeyID?>.remove(this)" href="javascript:void(0)">x</a>
 				</div>
 			<?php

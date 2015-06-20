@@ -31,7 +31,7 @@ class Marketplace
         if ($csToken != '') {
 
             $fh = Loader::helper('file');
-            $csiURL = urlencode(BASE_URL . DIR_REL);
+            $csiURL = urlencode(\Core::getApplicationURL());
             $url = Config::get('concrete.urls.concrete5') . Config::get('concrete.urls.paths.marketplace.connect_validate') . "?csToken={$csToken}&csiURL=" . $csiURL . "&csiVersion=" . APP_VERSION;
             $vn = Loader::helper('validation/numbers');
             $r = $fh->getContents($url);
@@ -67,7 +67,7 @@ class Marketplace
     public static function downloadRemoteFile($file)
     {
         $fh = Loader::helper('file');
-        $file .= '?csiURL=' . urlencode(BASE_URL . DIR_REL) . "&csiVersion=" . APP_VERSION;
+        $file .= '?csiURL=' . urlencode(\Core::getApplicationURL()) . "&csiVersion=" . APP_VERSION;
         $pkg = $fh->getContents($file);
         if (empty($pkg)) {
             return Package::E_PACKAGE_DOWNLOAD;
@@ -116,7 +116,7 @@ class Marketplace
 
         // Retrieve the URL contents
         $csToken = $dbConfig->get('concrete.marketplace.token');
-        $csiURL = urlencode(BASE_URL . DIR_REL);
+        $csiURL = urlencode(\Core::getApplicationURL());
         $url = Config::get('concrete.urls.concrete5') . Config::get('concrete.urls.paths.marketplace.purchases');
         $url .= "?csToken={$csToken}&csiURL=" . $csiURL . "&csiVersion=" . APP_VERSION;
         $json = $fh->getContents($url);
@@ -174,16 +174,22 @@ class Marketplace
         // a. go to its purchase page
         // b. pass you through to the page AFTER connecting.
         $tp = new TaskPermission();
+        $frameURL = Config::get('concrete.urls.concrete5');
+        if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
+            $frameURL = Config::get('concrete.urls.concrete5_secure');
+        }
         if ($tp->canInstallPackages()) {
             if (!$this->isConnected()) {
                 if (!$completeURL) {
-                    $completeURL = BASE_URL . URL::to('/dashboard/extend/connect', 'connect_complete');
+                    $completeURL = URL::to('/dashboard/extend/connect', 'connect_complete');
                 }
                 $csReferrer = urlencode($completeURL);
-                $csiURL = urlencode(BASE_URL . DIR_REL);
-                $csiBaseURL = urlencode(BASE_URL);
+                $csiURL = urlencode(\Core::getApplicationURL());
+                // this used to be the BASE_URL and not BASE_URL . DIR_REL but I don't have a method for that
+                // and honestly I'm not sure why it needs to be that way
+                $csiBaseURL = urlencode(\Core::getApplicationURL());
                 if ($this->hasConnectionError()) {
-                    if ($this->connectionError == E_DELETED_SITE_TOKEN) {
+                    if ($this->connectionError == Marketplace::E_DELETED_SITE_TOKEN) {
                         $connectMethod = 'view';
                         $csToken = Marketplace::generateSiteToken();
                     } else {
@@ -193,14 +199,14 @@ class Marketplace
                     // new connection
                     $csToken = Marketplace::generateSiteToken();
                 }
-                $url = Config::get('concrete.urls.concrete5') . Config::get('concrete.urls.paths.marketplace.connect') . '/-/' . $connectMethod;
+                $url = $frameURL . Config::get('concrete.urls.paths.marketplace.connect') . '/-/' . $connectMethod;
                 $url = $url . '?ts=' . time() . '&csiBaseURL=' . $csiBaseURL . '&csiURL=' . $csiURL . '&csToken=' . $csToken . '&csReferrer=' . $csReferrer . '&csName=' . htmlspecialchars(
                         Config::get('concrete.site'),
                         ENT_QUOTES,
                         APP_CHARSET);
             } else {
-                $csiBaseURL = urlencode(BASE_URL);
-                $url = Config::get('concrete.urls.concrete5') . Config::get('concrete.urls.paths.marketplace.connect_success') . '?csToken=' . $this->getSiteToken() . '&csiBaseURL=' . $csiBaseURL;
+                $csiBaseURL = urlencode(\Core::getApplicationURL());
+                $url = $frameURL . Config::get('concrete.urls.paths.marketplace.connect_success') . '?csToken=' . $this->getSiteToken() . '&csiBaseURL=' . $csiBaseURL;
             }
             if ($csToken == false && !$this->isConnected()) {
                 return '<div class="ccm-error">' . t(
@@ -262,8 +268,8 @@ class Marketplace
             }
             if ($this->isConnected()) {
                 $url = Config::get('concrete.urls.concrete5_secure') . Config::get('concrete.urls.paths.marketplace.checkout');
-                $csiURL = urlencode(BASE_URL . DIR_REL);
-                $csiBaseURL = urlencode(BASE_URL);
+                $csiURL = urlencode(\Core::getApplicationURL());
+                $csiBaseURL = urlencode(\Core::getApplicationURL());
                 $csToken = $this->getSiteToken();
                 $url = $url . '/' . $mp->getProductBlockID() . '?ts=' . time() . '&csiBaseURL=' . $csiBaseURL . '&csiURL=' . $csiURL . '&csToken=' . $csToken;
             }

@@ -12,7 +12,7 @@ ob_start();
 <h2><?php echo t('Welcome to') ?> <?php echo $siteName ?></h2>
 <?php echo t("Your registration has been approved. You can log into your new account here") ?>:<br />
 <br />
-<a href="<?php echo BASE_URL.View::url('/login') ?>"><?php echo BASE_URL.View::url('/login') ?></a>
+<a href="<?php echo View::url('/login') ?>"><?php echo View::url('/login') ?></a>
 <?php
 
 $bodyHTML = ob_get_clean();
@@ -30,7 +30,7 @@ ob_start();
 
 <?php echo t("Your registration has been approved. You can log into your new account here") ?>:
 
-<?php echo BASE_URL.View::url('/login') ?>
+<?php echo View::url('/login') ?>
 <?php
 
 $body = ob_get_clean();

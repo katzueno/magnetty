@@ -25,10 +25,12 @@ class ServiceProvider extends \Concrete\Core\Foundation\Service\Provider
                     new Credentials(
                         \Config::get('auth.facebook.appid'),
                         \Config::get('auth.facebook.secret'),
-                        BASE_URL . \URL::to($callback)
+                        (string) \URL::to($callback)
                     ),
-                    new SymfonySession(\Session::getFacadeRoot(), false));
-            });
+                    new SymfonySession(\Session::getFacadeRoot(), false),
+                    array('email'));
+            }
+        );
     }
 
 }

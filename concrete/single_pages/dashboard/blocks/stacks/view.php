@@ -31,10 +31,19 @@ if ($controller->getTask() == 'view_details') {
         }
     }
 
+    $isGlobalArea = false;
+    if ($stack->getStackType() == Stack::ST_TYPE_GLOBAL_AREA) {
+        $isGlobalArea = true;
+    }
+
     ?>
 
     <div class="ccm-dashboard-header-buttons">
+        <?php if ($isGlobalArea) { ?>
+        <a href="<?php echo URL::to('/dashboard/blocks/stacks/view_global_areas')?>" data-dialog="add-stack" class="btn btn-default"><i class="fa fa-angle-double-left"></i> <?php echo t("Back to Global Areas")?></a>
+        <?php } else { ?>
         <a href="<?php echo URL::to('/dashboard/blocks/stacks')?>" data-dialog="add-stack" class="btn btn-default"><i class="fa fa-angle-double-left"></i> <?php echo t("Back to Stacks")?></a>
+        <?php } ?>
     </div>
 
     <p class="lead"><?php echo $stack->getCollectionName()?></p>
@@ -117,10 +126,11 @@ if ($controller->getTask() == 'view_details') {
     <script type="text/javascript">
         var showApprovalButton = function() {
             $('#ccm-stack-list-approve-button').show().addClass("animated fadeIn");
-        }
+        };
 
         $(function() {
-            var editor = new Concrete.EditMode({notify: false});
+            var editor = new Concrete.EditMode({notify: false}), ConcreteEvent = Concrete.event;
+
 
             ConcreteEvent.on('ClipboardAddBlock', function(event, data) {
                 var area = editor.getAreaByID(<?php echo $a->getAreaID()?>);
@@ -138,18 +148,24 @@ if ($controller->getTask() == 'view_details') {
 
             ConcreteEvent.on('EditModeAddClipboardComplete', function(event, data) {
                 showApprovalButton();
+                Concrete.getEditMode().scanBlocks();
             });
 
             ConcreteEvent.on('EditModeAddBlockComplete', function(event, data) {
                 showApprovalButton();
+                Concrete.getEditMode().scanBlocks();
             });
 
             ConcreteEvent.on('EditModeUpdateBlockComplete', function(event, data) {
                 showApprovalButton();
+                Concrete.getEditMode().scanBlocks();
             });
 
             ConcreteEvent.on('EditModeBlockDelete', function(event, data) {
                 showApprovalButton();
+                _.defer(function() {
+                    Concrete.getEditMode().scanBlocks();
+                });
             });
 
             $('a[data-dialog=delete-stack]').on('click', function() {

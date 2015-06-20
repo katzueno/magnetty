@@ -7,7 +7,7 @@ if ($c->isEditMode()) { ?>
 	</div>
 <?php  } else { ?>
 	<?php  if( strlen($title)>0){ ?><h3><?php echo $title?></h3><?php  } ?>
-	<div id="googleMapCanvas<?php echo $bID?>" class="googleMapCanvas" style="width: <?php echo $width; ?>; height: <?php echo $height; ?>"></div>
+	<div id="googleMapCanvas<?php echo $unique_identifier?>" class="googleMapCanvas" style="width: <?php echo $width; ?>; height: <?php echo $height; ?>"></div>
 <?php  } ?>
 
 
@@ -20,7 +20,7 @@ if ($c->isEditMode()) { ?>
 ?>
 
 <script type="text/javascript">
-    function googleMapInit<?php echo $bID?>() {
+    function googleMapInit<?php echo $unique_identifier?>() {
         try{
             var latlng = new google.maps.LatLng(<?php echo $latitude?>, <?php echo $longitude?>);
             var mapOptions = {
@@ -31,20 +31,20 @@ if ($c->isEditMode()) { ?>
                 scrollwheel: <?php echo !!$scrollwheel ? "true" : "false"?>,
                 mapTypeControl: false
             };
-            var map = new google.maps.Map(document.getElementById('googleMapCanvas<?php echo $bID?>'), mapOptions);
+            var map = new google.maps.Map(document.getElementById('googleMapCanvas<?php echo $unique_identifier?>'), mapOptions);
             var marker = new google.maps.Marker({
                 position: latlng,
                 map: map
             });
         }catch(e){
-            $("#googleMapCanvas<?php echo $bID?>").replaceWith("<p>Unable to display map: "+e.message+"</p>")}
+            $("#googleMapCanvas<?php echo $unique_identifier?>").replaceWith("<p>Unable to display map: "+e.message+"</p>")}
     }
     $(function() {
         var t;
         var startWhenVisible = function (){
-            if ($("#googleMapCanvas<?php echo $bID?>").is(":visible")){
+            if ($("#googleMapCanvas<?php echo $unique_identifier?>").is(":visible")){
                 window.clearInterval(t);
-                googleMapInit<?php echo $bID?>();
+                googleMapInit<?php echo $unique_identifier?>();
                 return true;
             }
             return false;

@@ -93,13 +93,15 @@ foreach ($filters as $filter) {
         $(function () {
             _.defer(function () {
                 var defaults = {
-                        saveUrl: CCM_REL + '/index.php/tools/required/files/importers/imageeditor',
+                        saveUrl: CCM_DISPATCHER_FILENAME + '/tools/required/files/importers/imageeditor',
                         src: '<?php echo $fv->getURL()?>',
                         fID: <?php echo $fv->getFileID() ?>,
                         controlsets: {},
                         filters: {},
                         components: {},
-                        debug: false
+                        debug: false,
+                        jpegCompression: <?php echo Config::get('concrete.misc.default_jpeg_image_compression') / 100 ?>,
+                        mime: '<?php echo $fv->getMimeType() ?>'
                     },
                     settings = _.extend(defaults, <?php echo json_encode($settings) ?>);
                 $('div.controlset', 'div.controls').each(function () {

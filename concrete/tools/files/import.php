@@ -49,7 +49,7 @@ ConcreteFileImportDialog = {
             $form.concreteAjaxForm({
                 success: function(r) {
                     jQuery.fn.dialog.closeTop();
-                    ConcreteEvent.trigger('FileManagerUpdateRequestComplete');
+                    ConcreteEvent.trigger('FileManagerAddFilesComplete', {files: r.files});
                 }
             }).submit();
         }
@@ -87,7 +87,7 @@ ConcreteFileImportDialog = {
 		?>
 			<tr>
 				<td width="10%" style="vertical-align: middle" class="center">
-					<?php if($fh->extension($file['extension'])) { ?>
+					<?php if($fh->extension($file['basename'])) { ?>
 						<input type="checkbox" name="send_file<?php echo $i?>" class="ccm-file-select-incoming" value="<?php echo $file['basename']?>" />
 					<?php } ?>
 				</td>

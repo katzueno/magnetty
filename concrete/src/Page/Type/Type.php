@@ -1,6 +1,7 @@
 <?php
 namespace Concrete\Core\Page\Type;
 
+use Concrete\Core\Attribute\Key\CollectionKey;
 use Concrete\Core\Multilingual\Page\Section\Section;
 use Concrete\Core\Page\Template;
 use Concrete\Core\Page\Type\Composer\Control\CorePageProperty\NameCorePageProperty;
@@ -26,6 +27,7 @@ use Package;
 use \Concrete\Core\Workflow\Request\ApprovePageRequest as ApprovePagePageWorkflowRequest;
 use CacheLocal;
 use \Concrete\Core\Page\Type\PublishTarget\Configuration\Configuration as PageTypePublishTargetConfiguration;
+use \Concrete\Core\Page\Type\PublishTarget\Type\Type as PageTypePublishTargetType;
 use \Concrete\Core\Page\Type\Composer\FormLayoutSetControl as PageTypeComposerFormLayoutSetControl;
 use \Concrete\Core\Page\Collection\Version\VersionList;
 use
@@ -46,7 +48,7 @@ class Type extends Object implements \Concrete\Core\Permission\ObjectInterface
     {
         return $this->ptName;
     }
-    
+
     public function getPageTypeDisplayName($format = 'html')
     {
         $value = t($this->getPageTypeName());
@@ -276,7 +278,7 @@ class Type extends Object implements \Concrete\Core\Permission\ObjectInterface
         }
     }
 
-    public function getPageTypePageTemplateDefaultPageObject(PageTemplate $template = null)
+    public function getPageTypePageTemplateDefaultPageObject(Template $template = null)
     {
         if (!$template) {
             $template = $this->getPageTypeDefaultPageTemplateObject();
@@ -381,6 +383,7 @@ class Type extends Object implements \Concrete\Core\Permission\ObjectInterface
         } else {
             $ptAllowedPageTemplates = 'A';
         }
+
         $ptName = (string)$node['name'];
         $ptHandle = (string)$node['handle'];
         $db = Loader::db();
@@ -412,11 +415,16 @@ class Type extends Object implements \Concrete\Core\Permission\ObjectInterface
         }
 
         $data['templates'] = $types;
+        $pkg = false;
+        if ($node['package']) {
+            $pkg = Package::getByHandle((string) $node['package']);
+        }
+
         if ($ptID) {
             $cm = static::getByID($ptID);
             $cm->update($data);
         } else {
-            $cm = static::add($data);
+            $cm = static::add($data, $pkg);
         }
         $node = $node->composer;
         if (isset($node->formlayout->set)) {
@@ -462,13 +470,30 @@ class Type extends Object implements \Concrete\Core\Permission\ObjectInterface
         $ptID = $db->GetOne('select ptID from PageTypes where ptHandle = ?', array($ptHandle));
         if ($ptID) {
             $pt = static::getByID($ptID);
+            $defaultTemplate = $pt->getPageTypeDefaultPageTemplateObject();
             if (isset($node->composer->output->pagetemplate)) {
                 $ci = new ContentImporter();
                 foreach ($node->composer->output->pagetemplate as $pagetemplate) {
-                    $ptt = PageTemplate::getByHandle((string)$pagetemplate['handle']);
+                    $handle = (string)$pagetemplate['handle'];
+                    $ptt = PageTemplate::getByHandle($handle);
                     if (is_object($ptt)) {
+
                         // let's get the defaults page for this
                         $xc = $pt->getPageTypePageTemplateDefaultPageObject($ptt);
+
+                        // if the $handle matches the default page template for this page type, then we ALSO check in here
+                        // and see if there are any attributes
+                        if (is_object($defaultTemplate) && $defaultTemplate->getPageTemplateHandle() == $handle) {
+                            if (isset($pagetemplate->page->attributes)) {
+                                foreach ($pagetemplate->page->attributes->children() as $attr) {
+                                    $ak = CollectionKey::getByHandle((string) $attr['handle']);
+                                    if (is_object($ak)) {
+                                        $xc->setAttribute((string) $attr['handle'], $ak->getController()->importValue($attr));
+                                    }
+                                }
+                            }
+                        }
+
                         // now that we have the defaults page, let's import this content into it.
                         if (isset($pagetemplate->page)) {
                             $ci->importPageAreas($xc, $pagetemplate->page);
@@ -554,6 +579,13 @@ class Type extends Object implements \Concrete\Core\Permission\ObjectInterface
                 }
             }
         }
+    }
+
+    public function getPageTypeUsageCount()
+    {
+        $db = Loader::db();
+        $count = $db->GetOne('select count(cID) from Pages where cIsTemplate = 0 and ptID = ? and cIsActive = 1', array($this->ptID));
+        return $count;
     }
 
     public function duplicate($ptHandle, $ptName)
@@ -642,6 +674,22 @@ class Type extends Object implements \Concrete\Core\Permission\ObjectInterface
         $new->setConfiguredPageTypePublishTargetObject($target);
     }
 
+    /**
+     * Add a page type
+     *
+     * @param array $data {
+     *     @var string          $handle              A string which can be used to identify the page type
+     *     @var string          $name                A user friendly display name
+     *     @var \PageTemplate   $defaultTemplate     The default template object
+     *     @var string          $allowedTemplates    (A|C|X) A for all, C for selected only, X for non-selected only
+     *     @var \PageTemplate[] $templates           Array or Iterator of selected templates, see `$allowedTemplates`
+     *     @var bool            $internal            Is this an internal only page type? Default: `false`
+     *     @var bool            $ptLaunchInComposer  Does this launch in composer? Default: `false`
+     *     @var bool            $ptIsFrequentlyAdded Should this always be displayed in the pages panel? Default: `false`
+     * }
+     * @param bool|Package $pkg This should be false if the type is not tied to a package, or a package object
+     * @return static|mixed|null
+     */
     public static function add($data, $pkg = false)
     {
         $ptHandle = $data['handle'];
@@ -713,6 +761,13 @@ class Type extends Object implements \Concrete\Core\Permission\ObjectInterface
         }
 
         $ptt = static::getByID($ptID);
+        
+        // set all type publish target as default
+        $target = PageTypePublishTargetType::getByHandle('all');
+        if (is_object($target)) {
+            $configuredTarget = $target->configurePageTypePublishTarget($ptt, array());
+            $ptt->setConfiguredPageTypePublishTargetObject($configuredTarget);
+        }
 
         // copy permissions from the defaults to the page type
         $cpk = PermissionKey::getByHandle('access_page_type_permissions');
@@ -990,25 +1045,21 @@ class Type extends Object implements \Concrete\Core\Permission\ObjectInterface
     public function canPublishPageTypeBeneathPage(\Concrete\Core\Page\Page $page)
     {
         $target = $this->getPageTypePublishTargetObject();
-        return $target->canPublishPageTypeBeneathTarget($this, $page);
+        if (is_object($target)) {
+            return $target->canPublishPageTypeBeneathTarget($this, $page);
+        }
     }
 
-    public function validateCreateDraftRequest($pt)
+    /**
+     * @return \Concrete\Core\Page\Type\Validator\ValidatorInterface|null
+     */
+    public function getPageTypeValidatorObject()
     {
-        $e = Loader::helper('validation/error');
-        $availablePageTemplates = $this->getPageTypePageTemplateObjects();
-        $availablePageTemplateIDs = array();
-        foreach ($availablePageTemplates as $ppt) {
-            $availablePageTemplateIDs[] = $ppt->getPageTemplateID();
+        if ($this->ptHandle) {
+            $validator = \Core::make('manager/page_type/validator')->driver($this->ptHandle);
+            $validator->setPageTypeObject($this);
+            return $validator;
         }
-        if (!is_object($pt)) {
-            $e->add(t('You must choose a page template.'));
-        } else {
-            if (!in_array($pt->getPageTemplateID(), $availablePageTemplateIDs)) {
-                $e->add(t('This page template is not a valid template for this page type.'));
-            }
-        }
-        return $e;
     }
 
     public function createDraft(PageTemplate $pt, $u = false)

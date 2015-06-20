@@ -1,18 +1,17 @@
 <?php
 defined('C5_EXECUTE') or die("Access Denied.");
-$token = Loader::helper('validation/token')->generate('composer');
 $cID = $c->getCollectionID();
 ?>
 
 <section class="ccm-ui">
 	<header><?php echo t('Composer - %s', $pagetype->getPageTypeDisplayName())?></header>
 	<form method="post" data-panel-detail-form="compose">
-		<?php echo Loader::helper('concrete/ui/help')->notify('panel', '/page/composer')?>
+		<?php echo Loader::helper('concrete/ui/help')->display('panel', '/page/composer')?>
 
 		<?php Loader::helper('concrete/composer')->display($pagetype, $c); ?>
 	</form>
 
-	<div class="ccm-panel-detail-form-actions">
+	<div class="ccm-panel-detail-form-actions dialog-buttons">
 		<?php Loader::helper('concrete/composer')->displayButtons($pagetype, $c); ?>
 	</div>
 </section>
@@ -60,7 +59,7 @@ ConcretePageComposerDetail = {
 	    	my.disableAutosave();
 	    	$.concreteAjax({
 	    		'url': '<?php echo $controller->action('discard')?>',
-	    		'data': {token: '<?php echo $token?>', cID: '<?php echo $cID?>'},
+	    		'data': {cID: '<?php echo $cID?>'},
 	    		success: function(r) {
 					window.location.href = r.redirectURL;
 	    		}

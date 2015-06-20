@@ -108,7 +108,7 @@ class Group extends Object implements \Concrete\Core\Permission\ObjectInterface
         $user_list = new UserList();
         $user_list->filterByGroup($this);
 
-        return $user_list->getUserIDs();
+        return $user_list->getResultIDs();
     }
 
     public function setPermissionsForObject($obj)
@@ -280,21 +280,23 @@ class Group extends Object implements \Concrete\Core\Permission\ObjectInterface
         }
     }
 
-    public function getGroupDisplayName($includeHTML = true)
+    public function getGroupDisplayName($includeHTML = true, $includePath = true)
     {
         $return = '';
-        $parentGroups = $this->getParentGroups();
-        if (count($parentGroups) > 0) {
-            if ($includeHTML) {
-                $return .= '<span class="ccm-group-breadcrumb">';
-            }
-            foreach ($parentGroups as $pg) {
-                $return .= h(tc('GroupName', $pg->getGroupName()));
-                $return .= ' ' . Config::get('concrete.seo.group_name_separator') . ' ';
-            }
-            $return = trim($return);
-            if ($includeHTML) {
-                $return .= '</span> ';
+        if ($includePath) {
+            $parentGroups = $this->getParentGroups();
+            if (count($parentGroups) > 0) {
+                if ($includeHTML) {
+                    $return .= '<span class="ccm-group-breadcrumb">';
+                }
+                foreach ($parentGroups as $pg) {
+                    $return .= h(tc('GroupName', $pg->getGroupName()));
+                    $return .= ' ' . Config::get('concrete.seo.group_name_separator') . ' ';
+                }
+                $return = trim($return);
+                if ($includeHTML) {
+                    $return .= '</span> ';
+                }
             }
         }
         $return .= tc('GroupName', $this->getGroupName());
@@ -367,7 +369,11 @@ class Group extends Object implements \Concrete\Core\Permission\ObjectInterface
     public function getGroupAutomationController()
     {
         $class = $this->getGroupAutomationControllerClass();
-        $c = \Core::make($class, array($this));
+        try {
+            $c = \Core::make($class, array($this));
+        } catch(\ReflectionException $e) {
+            $c = \Core::make(core_class('\\Core\\User\\Group\\AutomatedGroup\\DefaultAutomation'), array($this));
+        }
         return $c;
     }
 

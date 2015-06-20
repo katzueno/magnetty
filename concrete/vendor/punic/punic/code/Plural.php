@@ -1,20 +1,22 @@
 <?php
+
 namespace Punic;
 
 /**
- * Plural helper stuff
+ * Plural helper stuff.
  */
 class Plural
 {
-
     /**
-     * Return the list of applicable plural rule for a locale
-     * @param string $locale = '' The locale to use. If empty we'll use the default locale set in \Punic\Data
-     * @return array[string] Returns a list containing some the following values: 'zero', 'one', 'two', 'few', 'many', 'other' ('other' will be always there)
+     * Return the list of applicable plural rule for a locale.
+     *
+     * @param string $locale The locale to use. If empty we'll use the default locale set in \Punic\Data
+     *
+     * @return array<string> Returns a list containing some the following values: 'zero', 'one', 'two', 'few', 'many', 'other' ('other' will be always there)
      */
     public static function getRules($locale = '')
     {
-        $node = \Punic\Data::getLanguageNode(\Punic\Data::getGeneric('plurals'), $locale);
+        $node = Data::getLanguageNode(Data::getGeneric('plurals'), $locale);
 
         return array_merge(
             array_keys($node),
@@ -23,10 +25,13 @@ class Plural
     }
 
     /**
-     * Return the plural rule ('zero', 'one', 'two', 'few', 'many' or 'other') for a number and a locale
+     * Return the plural rule ('zero', 'one', 'two', 'few', 'many' or 'other') for a number and a locale.
+     *
      * @param string|int|float $number The number to check the plural rule for for
-     * @param string $locale = '' The locale to use. If empty we'll use the default locale set in \Punic\Data
+     * @param string $locale The locale to use. If empty we'll use the default locale set in \Punic\Data
+     *
      * @return string Returns one of the following values: 'zero', 'one', 'two', 'few', 'many', 'other'
+     *
      * @throws \Punic\Exception\BadArgumentType Throws a \Punic\Exception\BadArgumentType if $number is not a valid number
      * @throws \Exception Throws a \Exception if there were problems calculating the plural rule
      */
@@ -44,7 +49,7 @@ class Plural
                 list($intPart, $floatPart) = explode('.', $s);
             }
             $intPartAbs = strval(abs(intval($intPart)));
-        } elseif (is_string($number) && strlen($number)) {
+        } elseif (is_string($number) && isset($number[0])) {
             if (preg_match('/^[+|\\-]?\\d+\\.?$/', $number)) {
                 $v = intval($number);
                 $intPartAbs = strval(abs($v));
@@ -71,11 +76,11 @@ class Plural
         $v5 = strlen($floatPart) ? strval(intval($floatPart)) : '0';
         // 't' => '%6$s', // visible fractional digits in n, without trailing zeros.
         $v6 = trim($floatPart, '0');
-        if (!strlen($v6)) {
+        if (!isset($v6[0])) {
             $v6 = '0';
         }
         $result = 'other';
-        $node = \Punic\Data::getLanguageNode(\Punic\Data::getGeneric('plurals'), $locale);
+        $node = Data::getLanguageNode(Data::getGeneric('plurals'), $locale);
         foreach ($node as $rule => $formulaPattern) {
             $formula = sprintf($formulaPattern, $v1, $v2, $v3, $v4, $v5, $v6);
             $check = str_replace(array('static::inRange(', ' and ', ' or ', ', false, ', ', true, ', ', array('), ' , ', $formula);
@@ -120,7 +125,6 @@ class Plural
         foreach ($rangeValues as $rangeValue) {
             if (is_array($rangeValue)) {
                 if ($isInt && ($value >= $rangeValue[0]) && ($value <= $rangeValue[1])) {
-
                     $included = true;
                     break;
                 }

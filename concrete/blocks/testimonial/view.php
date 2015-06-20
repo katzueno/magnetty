@@ -8,36 +8,36 @@
         <div class="ccm-block-testimonial-text">
 
             <div class="ccm-block-testimonial-name">
-                <?php echo $name?>
+                <?php echo h($name)?>
             </div>
 
         <?php if ($position && $company && $companyURL): ?>
             <div class="ccm-block-testimonial-position">
-                <?php echo t('%s, <a href="%s">%s</a>', $position, $companyURL, $company)?>
+                <?php echo t('%s, <a href="%s">%s</a>', h($position), urlencode($companyURL), h($company))?>
             </div>
         <?php endif; ?>
 
         <?php if ($position && !$company && $companyURL): ?>
             <div class="ccm-block-testimonial-position">
-                <?php echo t('<a href="%s">%s</a>', $companyURL, $position)?>
+                <?php echo t('<a href="%s">%s</a>', urlencode($companyURL), h($position))?>
             </div>
         <?php endif; ?>
 
         <?php if ($position && $company && !$companyURL): ?>
             <div class="ccm-block-testimonial-position">
-                <?php echo t('%s, %s', $position, $company)?>
+                <?php echo t('%s, %s', h($position), h($company))?>
             </div>
         <?php endif; ?>
 
         <?php if ($position && !$company && !$companyURL): ?>
             <div class="ccm-block-testimonial-position">
-                <?php echo $position?>
+                <?php echo h($position)?>
             </div>
         <?php endif; ?>
 
 
         <?php if ($paragraph): ?>
-            <div class="ccm-block-testimonial-paragraph"><?php echo $paragraph?></div>
+            <div class="ccm-block-testimonial-paragraph"><?php echo h($paragraph)?></div>
         <?php endif; ?>
 
         </div>

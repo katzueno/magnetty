@@ -9,7 +9,10 @@ use Concrete\Core\Foundation\EnvironmentDetector;
 use Concrete\Core\Localization\Localization;
 use Concrete\Core\Logging\Query\Logger;
 use Concrete\Core\Routing\DispatcherRouteCallback;
+use Concrete\Core\Routing\RedirectResponse;
 use Concrete\Core\Updater\Update;
+use Concrete\Core\Url\Url;
+use Concrete\Core\Url\UrlImmutable;
 use Config;
 use Core;
 use Database;
@@ -22,10 +25,12 @@ use Log;
 use Package;
 use Page;
 use Redirect;
-use Request;
+use \Concrete\Core\Http\Request;
 use Route;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use User;
 use View;
 
@@ -37,18 +42,24 @@ class Application extends Container
 
     /**
      * Turns off the lights.
+     * @param array $options Array of options for disabling certain things during shutdown
+     *      Add `'jobs' => true` to disable scheduled jobs
+     *      Add `'log_queries' => true` to disable query logging
      */
-    public function shutdown()
+    public function shutdown($options = array())
     {
         \Events::dispatch('on_shutdown');
 
         if ($this->isInstalled()) {
-            $this->handleScheduledJobs();
+            if (!isset($options['jobs']) || $options['jobs'] == false) {
+                $this->handleScheduledJobs();
+            }
 
             $logger = new Logger();
             $r = Request::getInstance();
 
-            if (Config::get('concrete.log.queries.log')) {
+            if (Config::get('concrete.log.queries.log') &&
+                (!isset($options['log_queries']) || $options['log_queries'] == false)) {
                 $connection = Database::getActiveConnection();
                 if ($logger->shouldLogQueries($r)) {
                     $loggers = array();
@@ -125,8 +136,8 @@ class Application extends Container
                 if (count($jobs)) {
                     foreach ($jobs as $j) {
                         if ($j->isScheduledForNow()) {
-                            $url = BASE_URL . View::url(
-                                                  '/tools/required/jobs/run_single?auth=' . $auth . '&jID=' . $j->getJobID(
+                            $url = View::url(
+                                                  '/ccm/system/jobs/run_single?auth=' . $auth . '&jID=' . $j->getJobID(
                                                   )
                                 );
                             break;
@@ -140,8 +151,8 @@ class Application extends Container
                     if (is_array($jSets) && count($jSets)) {
                         foreach ($jSets as $set) {
                             if ($set->isScheduledForNow()) {
-                                $url = BASE_URL . View::url(
-                                                      '/tools/required/jobs?auth=' . $auth . '&jsID=' . $set->getJobSetID(
+                                $url = View::url(
+                                                      '/ccm/system/jobs?auth=' . $auth . '&jsID=' . $set->getJobSetID(
                                                       )
                                     );
                                 break;
@@ -156,6 +167,7 @@ class Application extends Container
                     curl_setopt($ch, CURLOPT_HEADER, 0);
                     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
                     curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, Config::get('app.curl.verifyPeer'));
                     $res = curl_exec($ch);
                 }
             }
@@ -244,6 +256,7 @@ class Application extends Container
                 }
             }
         }
+        Config::set('app.bootstrap.packages_loaded', true);
     }
 
     /**
@@ -270,53 +283,64 @@ class Application extends Container
      * Using the configuration value, determines whether we need to redirect to a URL with
      * a trailing slash or not.
      *
-     * @return void
+     * @return \Concrete\Core\Routing\RedirectResponse
      */
-    public function handleURLSlashes()
+    public function handleURLSlashes(SymfonyRequest $request)
     {
-        $r = Request::getInstance();
-        $pathInfo = $r->getPathInfo();
-        if (strlen($pathInfo) > 1) {
-            $path = trim($pathInfo, '/');
-            $redirect = '/' . $path;
-            if (Config::get('concrete.seo.trailing_slash')) {
-                $redirect .= '/';
-            }
-            if ($pathInfo != $redirect) {
-                $dispatcher = Config::get('concrete.seo.url_rewriting') ? '' : '/' . DISPATCHER_FILENAME;
-                Redirect::url(
-                        BASE_URL . DIR_REL . $dispatcher . $redirect . ($r->getQueryString(
-                        ) ? '?' . $r->getQueryString() : '')
-                )->send();
+        $url = Url::createFromUrl($request->getUri());
+        if ($request->getPathInfo() != '/') {
+            if (urldecode((string) $url) != urldecode($request->getUri())) {
+                $response = new RedirectResponse((string) $url, 301);
+                $response->setRequest($request);
+                return $response;
             }
         }
     }
 
     /**
-     * If we have REDIRECT_TO_BASE_URL enabled, we need to honor it here.
+     * If we have redirect to canonical host enabled, we need to honor it here.
+     * @return \Concrete\Core\Routing\RedirectResponse
      */
-    public function handleBaseURLRedirection()
+    public function handleCanonicalURLRedirection(SymfonyRequest $r)
     {
-        if (Config::get('concrete.seo.redirect_to_base_url')) {
-            $protocol = 'http://';
-            $base_url = BASE_URL;
-            if (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on')) {
-                $protocol = 'https://';
-                if (defined('BASE_URL_SSL')) {
-                    $base_url = BASE_URL_SSL;
+        if (Config::get('concrete.seo.redirect_to_canonical_url') && Config::get('concrete.seo.canonical_url')) {
+            $url = UrlImmutable::createFromUrl($r->getUri());
+
+            $canonical = UrlImmutable::createFromUrl(\Config::get('concrete.seo.canonical_url'),
+                (bool) \Config::get('concrete.seo.trailing_slash')
+            );
+
+            // Set the parts of the current URL that are specified in the canonical URL, including host,
+            // port, scheme. Set scheme first so that our port can use the magic "set if necessary" method.
+            $new = $url->setScheme($canonical->getScheme()->get());
+            $new = $new->setHost($canonical->getHost()->get());
+            $new = $new->setPortIfNecessary($canonical->getPort()->get());
+
+            // Now we have our current url, swapped out with the important parts of the canonical URL.
+            // If it matches, we're good.
+            if ($new == $url) {
+                return null;
+            }
+
+            // Uh oh, it didn't match. before we redirect to the canonical URL, let's check to see if we have an SSL
+            // URL
+            if (\Config::get('concrete.seo.canonical_ssl_url')) {
+                $ssl = UrlImmutable::createFromUrl(\Config::get('concrete.seo.canonical_ssl_url'));
+
+                $new = $url->setScheme($ssl->getScheme()->get());
+                $new = $new->setHost($ssl->getHost()->get());
+                $new = $new->setPortIfNecessary($ssl->getPort()->get());
+
+                // Now we have our current url, swapped out with the important parts of the canonical URL.
+                // If it matches, we're good.
+                if ($new == $url) {
+                    return null;
                 }
+
             }
 
-            $uri = $this->make('helper/security')->sanitizeURL($_SERVER['REQUEST_URI']);
-            if (strpos($uri, '%7E') !== false) {
-                $uri = str_replace('%7E', '~', $uri);
-            }
-
-            if (($base_url != $protocol . $_SERVER['HTTP_HOST']) && ($base_url . ':' . $_SERVER['SERVER_PORT'] != 'https://' . $_SERVER['HTTP_HOST'])) {
-                header('HTTP/1.1 301 Moved Permanently');
-                header('Location: ' . $base_url . $uri);
-                exit;
-            }
+            $response = new RedirectResponse($new, '301');
+            return $response;
         }
     }
 
@@ -404,6 +428,15 @@ class Application extends Container
      */
     public function detectEnvironment($environments)
     {
+        $r = Request::getInstance();
+        $pos = stripos($r->server->get('SCRIPT_NAME'), DISPATCHER_FILENAME);
+        if($pos > 0) {
+            //we do this because in CLI circumstances (and some random ones) we would end up with index.ph instead of index.php
+            $pos = $pos - 1;
+        }
+        $home = substr($r->server->get('SCRIPT_NAME'), 0, $pos);
+        $this['app_relative_path'] = rtrim($home, '/');
+
         $args = isset($_SERVER['argv']) ? $_SERVER['argv'] : null;
 
         $detector = new EnvironmentDetector();

@@ -1,6 +1,7 @@
 <?php
 namespace Concrete\Controller\Search;
 
+use Concrete\Core\Http\ResponseAssetGroup;
 use Controller;
 use FileList;
 use \Concrete\Core\Search\StickyRequest;
@@ -31,7 +32,7 @@ class Files extends Controller
     public function search()
     {
         $cp = FilePermissions::getGlobal();
-        if (!$cp->canSearchFiles()) {
+        if (!$cp->canSearchFiles() && !$cp->canAddFile()) {
             return false;
         }
 
@@ -44,7 +45,7 @@ class Files extends Controller
 
         if (!$this->fileList->getActiveSortColumn()) {
             $col = $columns->getDefaultSortColumn();
-            $this->fileList->sortBy($col->getColumnKey(), $col->getColumnDefaultSortDirection());
+            $this->fileList->sanitizedSortBy($col->getColumnKey(), $col->getColumnDefaultSortDirection());
         }
 
         // first thing, we check to see if a saved search is being used
@@ -150,6 +151,11 @@ class Files extends Controller
         if (isset($req['numResults'])) {
             $this->fileList->setItemsPerPage(intval($req['numResults']));
         }
+        
+        $this->fileList->setPermissionsChecker(function($file) {
+            $cp = new \Permissions($file);
+            return $cp->canViewFileInFileManager();
+        });
 
         $ilr = new FileSearchResult($columns, $this->fileList, URL::to('/ccm/system/search/files/submit'), $this->fields);
         $this->result = $ilr;
@@ -184,7 +190,7 @@ class Files extends Controller
                 break;
             case 'type':
                 $form = Loader::helper('form');
-                $t1 = FileType::getUsedTypeList();
+                $t1 = FileType::getTypeList();
                 $types = array();
                 foreach ($t1 as $value) {
                     $types[$value] = FileType::getGenericTypeText($value);
@@ -215,14 +221,22 @@ class Files extends Controller
                 break;
         }
         $r->html = $html;
-
+        $ag = ResponseAssetGroup::get();
+        $r->assets = array();
+        foreach ($ag->getAssetsToOutput() as $position => $assets) {
+            foreach ($assets as $asset) {
+                if (is_object($asset)) {
+                    // have to do a check here because we might be included a dumb javascript call like i18n_js
+                    $r->assets[$asset->getAssetType()][] = $asset->getAssetURL();
+                }
+            }
+        }
         return $r;
     }
 
     public function submit()
     {
         $this->search();
-        $result = $this->result;
         Loader::helper('ajax')->sendResult($this->result->getJSONObject());
     }
 

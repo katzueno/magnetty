@@ -7,7 +7,6 @@ defined('C5_EXECUTE') or die('Access denied.');
 $r = ResponseAssetGroup::get();
 $r->requireAsset('javascript', 'underscore');
 $r->requireAsset('javascript', 'core/events');
-$r->requireAsset('core/legacy');
 
 $activeAuths = AuthenticationType::getList(true, true);
 $form = Loader::helper('form');
@@ -198,7 +197,7 @@ $attribute_mode = (isset($required_attributes) && count($required_attributes));
             <?php if(Config::get('concrete.white_label.background_image') !== 'none') { ?>
             $(function () {
                 var shown = false, info;
-                $.getJSON('<?php echo BASE_URL . DIR_REL . '/' . DISPATCHER_FILENAME . '/tools/required/dashboard/get_image_data' ?>', { image: '<?php echo $image ?>' }, function (data) {
+                $.getJSON('<?php echo Core::getApplicationURL() . '/' . DISPATCHER_FILENAME . '/tools/required/dashboard/get_image_data' ?>', { image: '<?php echo $image ?>' }, function (data) {
                     if (shown) {
                         $('div.background-credit').fadeIn().children().attr('href', data.link).text(data.author.join());
                     } else {

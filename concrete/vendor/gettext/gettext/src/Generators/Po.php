@@ -12,17 +12,8 @@ class Po extends Generator implements GeneratorInterface
     {
         $lines = array('msgid ""', 'msgstr ""');
 
-        $headers = array_replace(array(
-            'Project-Id-Version' => '',
-            'Report-Msgid-Bugs-To' => '',
-            'Last-Translator' => '',
-            'Language-Team' => '',
-            'MIME-Version' => '1.0',
-            'Content-Type' => 'text/plain; charset=UTF-8',
-            'Content-Transfer-Encoding' => '8bit',
-        ), $translations->getHeaders());
-
-        $headers['POT-Creation-Date'] = $headers['PO-Revision-Date'] = date('c');
+        $headers = $translations->getHeaders();
+        $headers['PO-Revision-Date'] = date('c');
 
         foreach ($headers as $name => $value) {
             $lines[] = '"'.$name.': '.$value.'\\n"';
@@ -38,34 +29,37 @@ class Po extends Generator implements GeneratorInterface
                 }
             }
 
+            if ($translation->hasExtractedComments()) {
+                foreach ($translation->getExtractedComments() as $comment) {
+                    $lines[] = '#. '.$comment;
+                }
+            }
+
             if ($translation->hasReferences()) {
                 foreach ($translation->getReferences() as $reference) {
-                    $lines[] = '#: '.$reference[0].':'.$reference[1];
+                    $lines[] = '#: '.$reference[0].(!is_null($reference[1]) ? ':'.$reference[1] : null);
                 }
+            }
+
+            if ($translation->hasFlags()) {
+                $lines[] = '#, '.implode(',', $translation->getFlags());
             }
 
             if ($translation->hasContext()) {
                 $lines[] = 'msgctxt '.self::quote($translation->getContext());
             }
 
-            $msgid = self::multilineQuote($translation->getOriginal());
-
-            if (count($msgid) === 1) {
-                $lines[] = 'msgid '.$msgid[0];
-            } else {
-                $lines[] = 'msgid ""';
-                $lines = array_merge($lines, $msgid);
-            }
+            self::addLines($lines, 'msgid', $translation->getOriginal());
 
             if ($translation->hasPlural()) {
-                $lines[] = 'msgid_plural '.self::quote($translation->getPlural());
-                $lines[] = 'msgstr[0] '.self::quote($translation->getTranslation());
+                self::addLines($lines, 'msgid_plural', $translation->getPlural());
+                self::addLines($lines, 'msgstr[0]', $translation->getTranslation());
 
                 foreach ($translation->getPluralTranslation() as $k => $v) {
-                    $lines[] = 'msgstr['.($k + 1).'] '.self::quote($v);
+                    self::addLines($lines, 'msgstr['.($k + 1).']', $v);
                 }
             } else {
-                $lines[] = 'msgstr '.self::quote($translation->getTranslation());
+                self::addLines($lines, 'msgstr', $translation->getTranslation());
             }
 
             $lines[] = '';
@@ -83,7 +77,7 @@ class Po extends Generator implements GeneratorInterface
      */
     private static function quote($string)
     {
-        return '"'.str_replace(array("\r", "\n", '"'), array('', '\n', '\\"'), $string).'"';
+        return '"'.str_replace(array('\\', "\r", "\n", "\t", '"'), array('\\\\', '', '\n', '\t', '\\"'), $string).'"';
     }
 
     /**
@@ -107,5 +101,27 @@ class Po extends Generator implements GeneratorInterface
         }
 
         return $lines;
+    }
+
+    /**
+     * Add one or more lines depending whether the string is multiline or not
+     *
+     * @param array  &$lines
+     * @param string $name
+     * @param string $value
+     */
+    private static function addLines(array &$lines, $name, $value)
+    {
+        $newLines = self::multilineQuote($value);
+
+        if (count($newLines) === 1) {
+            $lines[] = $name.' '.$newLines[0];
+        } else {
+            $lines[] = $name.' ""';
+
+            foreach ($newLines as $line) {
+                $lines[] = $line;
+            }
+        }
     }
 }

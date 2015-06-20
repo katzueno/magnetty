@@ -1,22 +1,20 @@
 <?php
+
 namespace Concrete\Core\Block\View;
 
 use Concrete\Core\View\AbstractView;
 use Config;
-use Loader;
 use Area;
 use Environment;
-use CacheLocal;
 use User;
 use Page;
-use \Concrete\Core\Block\Block;
+use Concrete\Core\Block\Block;
 use BlockType;
 use URL;
 use View;
 
 class BlockView extends AbstractView
 {
-
     protected $block;
     protected $area;
     protected $blockType;
@@ -50,7 +48,6 @@ class BlockView extends AbstractView
                 $this->controller = $this->blockType->getController();
             }
         }
-
     }
 
     public function showControls()
@@ -78,7 +75,7 @@ class BlockView extends AbstractView
         if (is_object($this->area)) {
             $this->controller->setAreaObject($this->area);
         }
-        /**
+        /*
          * Legacy shit
          */
         if ($state instanceof Block) {
@@ -94,7 +91,9 @@ class BlockView extends AbstractView
      * <code>
      *     <a href="<?=$this->action('get_results')?>">Get the results</a>
      * </code>
+     *
      * @param string $task
+     *
      * @return string $url
      */
     public function action($task)
@@ -110,8 +109,10 @@ class BlockView extends AbstractView
                 $c = Page::getCurrentPage();
                 if (is_object($b) && is_object($c)) {
                     $arguments = func_get_args();
+                    $arguments[] = $b->getBlockID();
                     array_unshift($arguments, $c);
-                    return call_user_func_array(array('\Concrete\Core\Routing\URL', 'page'), $arguments);
+
+                    return call_user_func_array(array('\URL', 'page'), $arguments);
                 }
             }
         } catch (Exception $e) {
@@ -139,6 +140,7 @@ class BlockView extends AbstractView
                 $view = 'view';
             }
         }
+        $customFilenameToRender = null;
         if (!in_array($this->viewToRender, array('view', 'add', 'edit', 'scrapbook'))) {
             // then we're trying to render a custom view file, which we'll pass to the bottom functions as $_filename
             $customFilenameToRender = $view . '.php';
@@ -158,6 +160,12 @@ class BlockView extends AbstractView
                     if ($this->block) {
                         $bFilename = $this->block->getBlockFilename();
                         $bvt = new BlockViewTemplate($this->block);
+                        if (!$bFilename && is_object($this->area)) {
+                            $templates = $this->area->getAreaCustomTemplates();
+                            if (isset($templates[$this->block->getBlockTypeHandle()])) {
+                                $bFilename = $templates[$this->block->getBlockTypeHandle()];
+                            }
+                        }
                     } else {
                         $bvt = new BlockViewTemplate($this->blockType);
                     }
@@ -223,13 +231,13 @@ class BlockView extends AbstractView
         extract($scopeItems);
         if (!$this->outputContent) {
             ob_start();
-            include($this->template);
+            include $this->template;
             $this->outputContent = ob_get_contents();
             ob_end_clean();
         }
 
         if ($this->blockViewHeaderFile) {
-            include($this->blockViewHeaderFile);
+            include $this->blockViewHeaderFile;
         }
 
         $this->controller->registerViewAssets($this->outputContent);
@@ -239,7 +247,7 @@ class BlockView extends AbstractView
         $this->onAfterGetContents();
 
         if ($this->blockViewFooterFile) {
-            include($this->blockViewFooterFile);
+            include $this->blockViewFooterFile;
         }
     }
 
@@ -259,9 +267,12 @@ class BlockView extends AbstractView
     }
 
     /**
-     * Returns the path to the current block's directory
+     * Returns the path to the current block's directory.
+     *
      * @access private
+     *
      * @deprecated
+     *
      * @return string
      */
     public function getBlockPath($filename = null)
@@ -282,11 +293,13 @@ class BlockView extends AbstractView
                 $base = DIR_FILES_BLOCK_TYPES_CORE . '/' . $obj->getBlockTypeHandle();
             }
         }
+
         return $base;
     }
 
     /**
      * Returns a relative path to the current block's directory. If a filename is specified it will be appended and searched for as well.
+     *
      * @return string
      */
     public function getBlockURL($filename = null)
@@ -316,10 +329,10 @@ class BlockView extends AbstractView
         extract($args);
         extract($this->getScopeItems());
         $env = Environment::get();
-        include($env->getPath(
+        include $env->getPath(
             DIRNAME_BLOCKS . '/' . $this->blockType->getBlockTypeHandle() . '/' . $file,
             $this->blockTypePkgHandle
-        ));
+        );
     }
 
     public function getScopeItems()
@@ -328,6 +341,7 @@ class BlockView extends AbstractView
         $items['b'] = $this->block;
         $items['bt'] = $this->blockType;
         $items['a'] = $this->area;
+
         return $items;
     }
 
@@ -343,6 +357,7 @@ class BlockView extends AbstractView
                 return true;
             }
         }
+
         return false;
     }
 
@@ -360,11 +375,13 @@ class BlockView extends AbstractView
                 $this->area
             );
         }
+
         return $contents;
     }
 
     public function runControllerTask()
     {
+        $this->controller->on_start();
 
         if ($this->useBlockCache()) {
             $this->didPullFromOutputCache = true;
@@ -393,22 +410,21 @@ class BlockView extends AbstractView
 
             $parameters = array();
             if (!$passthru) {
-                $this->controller->on_start();
                 $this->controller->runAction($method, $parameters);
             }
             $this->controller->on_before_render();
         }
-
     }
 
     /**
-     * Legacy
+     * Legacy.
+     *
      * @access private
      */
     public function getThemePath()
     {
         $v = View::getInstance();
+
         return $v->getThemePath();
     }
-
 }

@@ -1,17 +1,28 @@
 <?php
 namespace Gettext;
 
-use Exception;
 use Gettext\Generators\PhpArray;
 
 class Translator
 {
+    public static $current;
+
+    private $domain;
     private $dictionary = array();
-    private $domain = 'messages';
     private $context_glue = "\004";
-    private $pluralCount = 2;
-    private $pluralCode = 'return ($n != 1);';
-    private $pluralFunction;
+    private $plurals = array();
+
+    /**
+     * Set a translation instance as global, to use it with the gettext functions
+     *
+     * @param Translator $translator
+     */
+    public static function initGettextFunctions(Translator $translator)
+    {
+        self::$current = $translator;
+
+        include_once __DIR__.'/translator_functions.php';
+    }
 
     /**
      * Loads translation from a Translations instance, a file on an array
@@ -23,54 +34,50 @@ class Translator
     public function loadTranslations($translations)
     {
         if (is_object($translations) && $translations instanceof Translations) {
-            $this->loadArray(PhpArray::toArray($translations));
+            $translations = PhpArray::toArray($translations);
         } elseif (is_string($translations) && is_file($translations)) {
-            $this->loadArray(include $translations);
-        } elseif (is_array($translations)) {
-            $this->loadArray($translations);
-        } else {
+            $translations = include $translations;
+        } elseif (!is_array($translations)) {
             throw new \InvalidArgumentException('Invalid Translator: only arrays, files or instance of Translations are allowed');
+        }
+
+        foreach ($translations as $translation) {
+            $this->addTranslations($translation);
         }
 
         return $this;
     }
 
     /**
-     * Loads translations from an array
+     * Set new translations to the dictionary
      *
      * @param array $translations
      */
-    protected function loadArray(array $translations)
+    public function addTranslations(array $translations)
     {
-        $domain = isset($translations['messages']['']['domain']) ? $translations['messages']['']['domain'] : null;
+        $info = isset($translations['']) ? $translations[''] : null;
+        unset($translations['']);
 
-        // If a plural form is set we extract those values
-        if (isset($translations['messages']['']['plural-forms'])) {
-            list($count, $code) = explode(';', $translations['messages']['']['plural-forms']);
-            $this->pluralCount = (int) str_replace('nplurals=', '', $count);
+        $domain = isset($info['domain']) ? $info['domain'] : 'messages';
 
-            // extract just the expression turn 'n' into a php variable '$n'.
-            // Slap on a return keyword and semicolon at the end.
-            $this->pluralCode = str_replace('plural=', 'return ', str_replace('n', '$n', $code)).';';
-        }
-
-        unset($translations['messages']['']);
-        $this->addTranslations($translations['messages'], $domain);
-    }
-
-    /**
-     * Set new translations to the dictionary
-     *
-     * @param array       $translations
-     * @param null|string $domain
-     */
-    public function addTranslations(array $translations, $domain = null)
-    {
-        if ($domain === null) {
-            $domain = $this->domain;
+        //Set the first domain loaded as default domain
+        if (!$this->domain) {
+            $this->domain = $domain;
         }
 
         if (!isset($this->dictionary[$domain])) {
+            // If a plural form is set we extract those values
+            $pluralForms = empty($info['plural-forms']) ? 'nplurals=2; plural=(n != 1)' : $info['plural-forms'];
+
+            list($count, $code) = explode(';', $pluralForms, 2);
+
+            // extract just the expression turn 'n' into a php variable '$n'.
+            // Slap on a return keyword and semicolon at the end.
+            $this->plurals[$domain] = array(
+                'count' => (int) str_replace('nplurals=', '', $count),
+                'code' => str_replace('plural=', 'return ', str_replace('n', '$n', $code)).';',
+            );
+
             $this->dictionary[$domain] = $translations;
         } else {
             $this->dictionary[$domain] = array_replace_recursive($this->dictionary[$domain], $translations);
@@ -214,7 +221,7 @@ class Translator
      */
     public function dnpgettext($domain, $context, $original, $plural, $value)
     {
-        $key = $this->isPlural($value);
+        $key = $this->isPlural($domain, $value);
         $translation = $this->getTranslation($domain, $context, $original);
 
         if (isset($translation[$key]) && $translation[$key] !== '') {
@@ -228,22 +235,28 @@ class Translator
      * Executes the plural decision code given the number to decide which
      * plural version to take.
      *
+     * @param  string $domain
      * @param  string $n
      * @return int
      */
-    public function isPlural($n)
+    public function isPlural($domain, $n)
     {
-        if (!$this->pluralFunction) {
-            $this->pluralFunction = create_function('$n', self::fixTerseIfs($this->pluralCode));
+        //Not loaded domain, use a fallback
+        if (!isset($this->plurals[$domain])) {
+            return $n == 1 ? 1 : 2;
         }
 
-        if ($this->pluralCount <= 2) {
-            return (call_user_func($this->pluralFunction, $n)) ? 2 : 1;
+        if (!isset($this->plurals[$domain]['function'])) {
+            $this->plurals[$domain]['function'] = create_function('$n', self::fixTerseIfs($this->plurals[$domain]['code']));
+        }
+
+        if ($this->plurals[$domain]['count'] <= 2) {
+            return (call_user_func($this->plurals[$domain]['function'], $n)) ? 2 : 1;
         }
 
         // We need to +1 because while (GNU) gettext codes assume 0 based,
         // this gettext actually stores 1 based.
-        return (call_user_func($this->pluralFunction, $n)) + 1;
+        return (call_user_func($this->plurals[$domain]['function'], $n)) + 1;
     }
 
     /**

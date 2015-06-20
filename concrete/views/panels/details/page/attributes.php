@@ -22,7 +22,9 @@ defined('C5_EXECUTE') or die("Access Denied.");
             <input type="hidden" name="sitemap" value="1" />
         <?php } ?>
 
-		<?php echo Loader::helper('concrete/ui/help')->notify('panel', '/page/attributes')?>
+		<span class="ccm-detail-page-attributes-id"><?php echo t('Page ID: %s', $c->getCollectionID())?></span>
+
+		<?php echo Loader::helper('concrete/ui/help')->display('panel', '/page/attributes')?>
 		<?php if ($assignment->allowEditName()) { ?>
 		<div class="form-group">
 			<label for="cName" class="control-label"><?php echo t('Name')?></label>
@@ -40,7 +42,7 @@ defined('C5_EXECUTE') or die("Access Denied.");
 			</div>
 		</div>
 		<?php } ?>
-		
+
 		<?php if ($assignment->allowEditUserID()) { ?>
 		<div class="form-group">
 			<label for="cName" class="control-label"><?php echo t('Author')?></label>
@@ -120,6 +122,7 @@ ConcretePageAttributesDetail = {
 			},
 			complete: function() {
 				jQuery.fn.dialog.hideLoader();
+				$('#ccm-panel-detail-page-attributes').scrollTop(100000000);
 			}
 		});
 	}
@@ -141,6 +144,7 @@ $(function() {
         ConcreteEvent.unsubscribe('AjaxFormSubmitSuccess.saveAttributes');
         ConcreteEvent.subscribe('AjaxFormSubmitSuccess.saveAttributes', function(e, data) {
             if (data.form == 'attributes') {
+				ConcreteToolbar.disableDirectExit();
                 ConcreteEvent.publish('SitemapUpdatePageRequestComplete', {'cID': data.response.cID});
             }
         });

@@ -2,8 +2,8 @@
 
 <fieldset>
     <legend><?php echo t('Icon')?></legend>
-        <div class="form-group ccm-block-feature-select-icon">
-            <?php echo $form->select('icon', $icons, $icon, array('style' => 'width: 360px'));?>
+        <div class="form-group ccm-block-feature-select-icon" style="margin-right: 35px;">
+            <?php echo $form->select('icon', $icons, $icon);?>
             <i data-preview="icon" <?php if ($icon) { ?>class="fa fa-<?php echo $icon?>"<?php } ?>></i>
         </div>
 </fieldset>
@@ -17,8 +17,11 @@
     </div>
 
     <div class="form-group">
-        <?php echo $form->label('paragraph', t('Paragraph'))?>
-        <?php echo $form->textarea('paragraph', $paragraph, array('rows' => 5)); ?>
+        <?php echo $form->label('paragraph', t('Paragraph:'));?>
+        <?php
+            $editor = Core::make('editor');
+            echo $editor->outputBlockEditModeEditor('paragraph', $paragraph);
+        ?>
     </div>
 
 </fieldset>
@@ -49,15 +52,11 @@
 <script type="text/javascript">
 $(function() {
     $('div.ccm-block-feature-select-icon').on('change', 'select', function() {
-        var $preview = $('i[data-preview=icon]');
-            icon = $(this).val();
-
-        $preview.removeClass();
-        if (icon) {
-            $preview.addClass('fa fa-' + icon);
+        $('i[data-preview="icon"]').removeClass();
+        if($(this).val()) {
+            $('i[data-preview="icon"]').addClass('fa fa-' + $(this).val());
         }
     });
-
     $('select[data-select=feature-link-type]').on('change', function() {
        if ($(this).val() == '0') {
            $('div[data-select-contents=feature-link-type-internal]').hide();
@@ -81,7 +80,7 @@ $(function() {
     }
     div.ccm-block-feature-select-icon i {
         position: absolute;
-        right: 15px;
+        right: -25px;
         top: 10px;
     }
 </style>

@@ -1,9 +1,9 @@
 <?php
-
 namespace Concrete\Controller\SinglePage\Dashboard\System\Multilingual;
+
 use Concrete\Core\Application\EditResponse;
 use Concrete\Core\Multilingual\Page\Section\Section;
-use \Concrete\Core\Page\Controller\DashboardPageController;
+use Concrete\Core\Page\Controller\DashboardPageController;
 use Concrete\Core\Multilingual\Page\Section\Translation;
 use Core;
 use Database;
@@ -20,7 +20,6 @@ class TranslateInterface extends DashboardPageController
     {
         $extractor = Core::make('multilingual/extractor');
         $this->set('extractor', $extractor);
-
     }
     public function reloaded()
     {
@@ -30,7 +29,7 @@ class TranslateInterface extends DashboardPageController
 
     public function exported()
     {
-        $this->set('message', t('Translations exported to PO File and Reloaded.'));
+        $this->set('message', t('The translations have been exported to file and will be used by the website.'));
         $this->view();
     }
 
@@ -47,7 +46,7 @@ class TranslateInterface extends DashboardPageController
             $extractor = Core::make('multilingual/extractor');
             if ($u->isSuperUser()) {
                 $list = Section::getList();
-                foreach($list as $section) {
+                foreach ($list as $section) {
                     // now we load the translations that currently exist for each section
                     $extractor->deleteSectionTranslationFile($section);
                 }
@@ -65,22 +64,28 @@ class TranslateInterface extends DashboardPageController
         if ($this->post('action') == 'reload') {
             if (Core::make('token')->validate()) {
                 // First, we look in all the site sources for PHP code with GetText
-                $translations = $extractor->extractTranslatableSiteStrings();
+                $baseTranslations = $extractor->extractTranslatableSiteStrings();
 
                 // $translations contains all of our site translations.
                 $list = Section::getList();
                 $defaultSourceLocale = Config::get('concrete.multilingual.default_source_locale');
-                foreach($list as $section) {
-                    if($section->getLocale() != $defaultSourceLocale) {
+                foreach ($list as $section) {
+                    /* @var $section \Concrete\Core\Multilingual\Page\Section\Section */
+                    if ($section->getLocale() != $defaultSourceLocale) {
+                        $localeTranslations = clone $baseTranslations;
+                        /* @var $localeTranslations \Gettext\Translations */
+                        $localeTranslations->setLanguage($section->getLocale());
+                        $localeTranslations->setPluralForms($section->getNumberOfPluralForms(), $section->getPluralsRule());
                         // now we load the translations that currently exist for each section
-                        $translations = $extractor->mergeTranslationsWithSectionFile($section, $translations);
-                        $translations = $extractor->mergeTranslationsWithCore($section, $translations);
-                        $extractor->saveSectionTranslationsToFile($section, $translations);
-    
+                        $extractor->mergeTranslationsWithSectionFile($section, $localeTranslations);
+                        $extractor->mergeTranslationsWithCore($section, $localeTranslations);
+                        $extractor->mergeTranslationsWithPackages($section, $localeTranslations);
+                        $extractor->saveSectionTranslationsToFile($section, $localeTranslations);
+
                         // now that we've updated the translation file, we take all the translations and
                         // we insert them into the database so we can update our counts, and give the users
                         // a web interface
-                        $extractor->saveSectionTranslationsToDatabase($section, $translations);
+                        $extractor->saveSectionTranslationsToDatabase($section, $localeTranslations);
                     }
                 }
                 $this->redirect('/dashboard/system/multilingual/translate_interface', 'reloaded');
@@ -92,13 +97,14 @@ class TranslateInterface extends DashboardPageController
             if (Core::make('token')->validate()) {
                 $defaultSourceLocale = Config::get('concrete.multilingual.default_source_locale');
                 $list = Section::getList();
-                foreach($list as $section) {
-                    if($section->getLocale() != $defaultSourceLocale) {
+                foreach ($list as $section) {
+                    if ($section->getLocale() != $defaultSourceLocale) {
                         $translations = $section->getSectionInterfaceTranslations();
-                        $translations = $extractor->mergeTranslationsWithSectionFile($section, $translations);
+                        $extractor->mergeTranslationsWithSectionFile($section, $translations);
                         $extractor->saveSectionTranslationsToFile($section, $translations);
                     }
                 }
+                \Localization::clearCache();
                 $this->redirect('/dashboard/system/multilingual/translate_interface', 'exported');
             } else {
                 $this->error->add(Core::make('token')->getErrorMessage());
@@ -109,13 +115,69 @@ class TranslateInterface extends DashboardPageController
 
     public function save_translation()
     {
-        $mtID = intval($this->post('mtID'));
-        $translation = Translation::getByID($mtID);
-        if (is_object($translation)) {
-            $translation->updateTranslation($this->post('msgstr'));
+        $result = new EditResponse();
+        try {
+            $translation = null;
+            $mtID = @intval($this->post('id'));
+            if ($mtID > 0) {
+                $translation = Translation::getByRecordID($mtID);
+            }
+            if (!isset($translation)) {
+                throw new \Exception(t('Invalid parameter received: %s', 'id'));
+            }
+            $singular = '';
+            $plurals = array();
+            if ($this->post('clear') !== '1') {
+                $translated = $this->post('translated');
+                if ((!is_array($translated)) || (count($translated) < 1)) {
+                    throw new \Exception(t('Invalid parameter received: %s', 'translated'));
+                }
+                if ($translation->hasPlural()) {
+                    $singular = array_shift($translated);
+                    $plurals = $translated;
+                } else {
+                    if (count($translated) !== 1) {
+                        throw new \Exception(t('Invalid parameter received: %s', 'translated'));
+                    }
+                    $singular = $translated[0];
+                }
+            }
+            $translation->updateTranslation($singular, $plurals);
+        } catch (\Exception $x) {
+            $result->setError($x);
         }
-        $r = new EditResponse();
-        $r->outputJSON();
+        $result->outputJSON();
+    }
+
+    public function export_translations($localeCode)
+    {
+        $result = new EditResponse();
+        try {
+            if (!Core::make('token')->validate('export_translations')) {
+                throw new \Exception(Core::make('token')->getErrorMessage());
+            }
+            $section = Section::getByLocale($localeCode);
+            if (is_object($section) && (!$section->isError())) {
+                if ($section->getLocale() == Config::get('concrete.multilingual.default_source_locale')) {
+                    $section = null;
+                }
+            } else {
+                $section = null;
+            }
+            if (!isset($section)) {
+                throw new \Exception(t('Invalid language identifier'));
+            }
+            $translations = $section->getSectionInterfaceTranslations();
+            $extractor = Core::make('multilingual/extractor');
+            $extractor->mergeTranslationsWithSectionFile($section, $translations);
+            $extractor->saveSectionTranslationsToFile($section, $translations);
+            \Localization::clearCache();
+            $result->setAdditionalDataAttribute('newToken', Core::make('token')->generate('export_translations'));
+            $result->message = t('The translations have been exported to file and will be used by the website.');
+        } catch (\Exception $x) {
+            $result->setError($x);
+        }
+        $result->outputJSON();
     }
 
     public function translate_po($mtSectionID = false)
@@ -124,13 +186,44 @@ class TranslateInterface extends DashboardPageController
         $section = Section::getByID(intval($mtSectionID));
         if ($section) {
             $translations = $section->getSectionInterfaceTranslations();
+            $this->requireAsset('core/translator');
             $this->set('section', $section);
-            $this->set('translations', $translations);
+            $jsonTranslations = array();
+            $numPlurals = $section->getNumberOfPluralForms();
+            foreach ($translations as $translation) {
+                /* @var $translation \Concrete\Core\Multilingual\Page\Section\Translation */
+                $jsonTranslation = array();
+                $jsonTranslation['id'] = $translation->getRecordID();
+                if ($translation->hasContext()) {
+                    $jsonTranslation['context'] = $translation->getContext();
+                }
+                $jsonTranslation['original'] = $translation->getOriginal();
+                if ($translation->hasPlural()) {
+                    $jsonTranslation['originalPlural'] = $translation->getPlural();
+                }
+                if ($translation->hasTranslation()) {
+                    $t = array($translation->getTranslation());
+                    if (($numPlurals > 1) && $translation->hasPlural()) {
+                        $t = array_merge($t, $translation->getPluralTranslation());
+                    }
+                    $jsonTranslation['translations'] = $t;
+                }
+                $extractedComments = '';
+                if ($translation->hasExtractedComments()) {
+                    $extractedComments = trim(implode("\n", $translation->getExtractedComments()));
+                }
+                if ($extractedComments !== '') {
+                    $jsonTranslation['comments'] = $extractedComments;
+                }
+                if ($translation->hasReferences()) {
+                    $jsonTranslation['references'] = $translation->getReferences();
+                }
+                $jsonTranslations[] = $jsonTranslation;
+            }
+
+            $this->set('translations', $jsonTranslations);
         } else {
             $this->redirect('/dashboard/system/multilingual/translate_interface');
         }
-
-
     }
-
 }

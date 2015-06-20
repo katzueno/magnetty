@@ -151,7 +151,7 @@ var ImageEditor = function (settings) {
     im.hideLoader = $.fn.dialog.hideLoader;
     im.stage.im = im;
     im.stage.elementType = 'stage';
-    im.crosshair.src = CCM_REL + '/concrete/images/image_editor/crosshair.png';
+    im.crosshair.src = CCM_IMAGE_PATH + '/image_editor/crosshair.png';
 
     im.center = {
         x: Math.round(im.width / 2),
@@ -418,7 +418,15 @@ im.save = function saveImage() {
             im.stage.setWidth(im.saveWidth + 100);
             im.stage.draw();
 
+            var mime = settings.mime;
+            if (mime !== 'image/jpeg' && mime !== 'image/png') {
+                // default to png
+                mime = 'image/png';
+            }
+
             im.stage.toDataURL({
+                mimeType: mime,
+                quality: settings.jpegCompression,
                 width: im.saveWidth,
                 height: im.saveHeight,
                 callback: function saveImageDataUrlCallback(url) {

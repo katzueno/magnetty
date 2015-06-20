@@ -24,7 +24,7 @@ if ($a instanceof SubArea && (!$a->overrideCollectionPermissions())) { ?>
 		<div class="alert alert-info">
 		<p>
 		<?php if ($areac->isMasterCollection()) { ?>
-			<?php $ptName = $areac->getPageTypeDisplayName(); ?>
+			<?php $ptName = $areac->getPageTypeName(); ?>
 			<?php echo t("The following area permissions are inherited from an area set in <strong>%s</strong> defaults.", $ptName)?>
 		<?php } else { ?>
 			<?php echo t("The following area permissions are inherited from an area set on ")?>

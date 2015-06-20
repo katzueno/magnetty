@@ -23,12 +23,13 @@
                 elem: elem,
                 totalBlocks: 0,
                 enableGridContainer: elem.data('area-enable-grid-container'),
+                customTemplates: elem.data('area-custom-templates'),
                 handle: elem.data('area-handle'),
                 dragAreas: [],
                 blocks: [],
                 editMode: edit_mode,
                 maximumBlocks: parseInt(elem.data('maximumBlocks'), 10),
-                blockTypes: elem.data('accepts-block-types').split(' '),
+                blockTypes: elem.data('accepts-block-types').toLowerCase().split(' '),
                 blockContainer: elem.children('.ccm-area-block-list')
             });
             my.id = my.getId();
@@ -171,6 +172,16 @@
                     return false;
                 });
 
+            $menuElem.find('a[data-menu-action=area-add-block]')
+                .off('click.edit-mode')
+                .on('click.edit-mode', function(e) {
+                    my.getEditMode().setNextBlockArea(my);
+                    var panelButton = $('[data-launch-panel="add-block"]');
+                    panelButton.click();
+
+                    return false;
+                });
+
             $menuElem.find('a[data-menu-action=edit-area-design]')
                 .off('click.edit-mode')
                 .on('click.edit-mode', function (e) {
@@ -200,6 +211,15 @@
 
 
                 });
+        },
+
+        /**
+         * Does this area accept a specific block type handle
+         * @param type_handle the block type handle
+         * @returns {bool}
+         */
+        acceptsBlockType: function areaAcceptsBlockType(type_handle) {
+            return _(this.getBlockTypes()).contains(type_handle.toLowerCase());
         },
 
         /**

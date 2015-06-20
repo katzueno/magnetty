@@ -14,30 +14,18 @@ var ConcreteToolbar = function() {
     }
 
 	setupHelpNotifications = function() {
-        $('.ccm-notification .dialog-launch').dialog();
-		$(document.body).on('click', 'a[data-dismiss]', function() {
-			var action = ($(this).attr('data-dismiss') == 'help-all') ? 'all' : 'this';
-			$(this).parentsUntil('.ccm-notification-help').parent().queue(function() {
-				$(this).addClass('animated fadeOut');
-				$(this).dequeue();
-			}).delay(500).queue(function() {
-				$(this).remove();
-				$(this).dequeue();
-			});
-
-			$.ajax({
-				type: 'post',
-				data: {
-					'type': $(this).attr('data-help-notification-type'),
-					'identifier': $(this).attr('data-help-notification-identifier'),
-					'action': action,
-					'ccm_token': CCM_SECURITY_TOKEN
-				},
-				url: CCM_TOOLS_PATH + '/help/dismiss',
-				success: function(r) {}
-			});
-			return false;
+		$('.ccm-notification .dialog-launch').dialog();
+		$('a[data-help-notification-toggle]').concreteHelpLauncher();
+		$('a[data-help-launch-dialog=main]').on('click', function(e) {
+			e.preventDefault();
+			new ConcreteHelpDialog().open();
 		});
+
+		var manager = ConcreteHelpGuideManager.get();
+		if (manager.getGuideToLaunchOnRefresh()) {
+			var tour = ConcreteHelpGuideManager.getGuide(manager.getGuideToLaunchOnRefresh());
+			tour.start();
+		}
 	}
 
 	setupPageAlerts = function() {
@@ -53,7 +41,7 @@ var ConcreteToolbar = function() {
 			return false;
 		});
 
-		$('#ccm-notification-page-alert form').ajaxForm({
+		$('#ccm-notification-page-alert-workflow form').ajaxForm({
 			dataType: 'json',
 			beforeSubmit: function() {
 				jQuery.fn.dialog.showLoader();
@@ -241,7 +229,7 @@ var ConcreteToolbar = function() {
 					$("#ccm-intelligent-search-results-list-marketplace").parent().hide();
 				});
 
-				$.getJSON(CCM_TOOLS_PATH + '/get_remote_help', {
+				$.getJSON(CCM_DISPATCHER_FILENAME + '/ccm/system/backend/get_remote_help', {
 					'q': remotesearchquery
 				},
 				function(r) {
@@ -265,7 +253,7 @@ var ConcreteToolbar = function() {
 					$("#ccm-intelligent-search-results-list-help").parent().hide();
 				});
 
-				$.getJSON(CCM_TOOLS_PATH + '/pages/intelligent_search', {
+				$.getJSON(CCM_DISPATCHER_FILENAME + '/ccm/system/backend/intelligent_search', {
 					'q': remotesearchquery
 				},
 				function(r) {

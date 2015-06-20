@@ -1,4 +1,5 @@
 <?php
+
 namespace Concrete\Core\Tree\Node\Type;
 
 use Concrete\Core\Tree\Node\Node as TreeNode;
@@ -7,6 +8,7 @@ use Group as UserGroup;
 
 class Group extends TreeNode
 {
+    protected $gID = null;
     public function getPermissionResponseClassName()
     {
         return '\\Concrete\\Core\\Permission\\Response\\GroupTreeNodeResponse';
@@ -44,7 +46,7 @@ class Group extends TreeNode
 
         $g = UserGroup::getByID($this->gID);
         if (is_object($g)) {
-            $gName = $g->getGroupDisplayName(false);
+            $gName = $g->getGroupDisplayName(false, false);
             switch ($format) {
                 case 'html':
                     return h($gName);
@@ -94,6 +96,9 @@ class Group extends TreeNode
         if (is_object($obj)) {
             $obj->gID = $this->gID;
             $obj->iconClass = 'fa fa-users';
+            if (isset($this->gID)) {
+                $obj->title = $this->getTreeNodeDisplayName('text');
+            }
 
             return $obj;
         }
@@ -116,5 +121,4 @@ class Group extends TreeNode
 
         return $node;
     }
-
 }

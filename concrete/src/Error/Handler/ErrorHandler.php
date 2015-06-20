@@ -52,8 +52,8 @@ class ErrorHandler extends PrettyPageHandler
                 if ($db->isConnected()) {
                     $l = new Logger(LOG_TYPE_EXCEPTIONS);
                     $l->emergency(
-                        t('Exception Occurred: ') . sprintf(
-                            "%s:%d %s (%d)\n",
+                        sprintf(
+                            "Exception Occurred: %s:%d %s (%d)\n",
                             $e->getFile(),
                             $e->getLine(),
                             $e->getMessage(),
@@ -97,8 +97,10 @@ class ErrorHandler extends PrettyPageHandler
         foreach ($config as $key => $value) {
             if (is_array($value)) {
                 $flat = array_merge($flat, $this->flatConfig($value, "{$group}.{$key}"));
-            } else {
+            } elseif (is_string($value)) {
                 $flat["{$group}.{$key}"] = $value;
+            } else {
+                $flat["{$group}.{$key}"] = json_encode($value);
             }
         }
 
