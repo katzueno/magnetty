@@ -72,6 +72,7 @@ class Controller extends BlockController {
     protected $btInterfaceWidth = 640;
     protected $btInterfaceHeight = 550;
     protected $btTable = 'btMagnettyTicket';
+    protected $btExportTables = array('btMagnettyTicket');
 
     protected $btCacheBlockRecord = true;
     protected $btCacheBlockOutput = true;
@@ -114,7 +115,7 @@ class Controller extends BlockController {
 */
 
     public function add() {
-	    $bID = $block->getBlockID();
+	    $bID = $this->bID;
 		$this->set('tID', $bID);
 	}
 
