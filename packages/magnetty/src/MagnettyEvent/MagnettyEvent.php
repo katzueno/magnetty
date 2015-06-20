@@ -14,7 +14,7 @@ use User;
  * @category   Social Networking
  * @package    Magnetty
  * @author     Katz Ueno <iam@katzueno.com>
- * @copyright  2014 Katz Ueno
+ * @copyright  2015 Katz Ueno
  * @license    concrete5 Marketplace Commercial Lisence
  */
 class MagnettyEvent {
@@ -23,7 +23,8 @@ class MagnettyEvent {
     /**
      * @param int $ID Collection ID of a page
      * @param int $cID Collection ID of a page
-     * @param int $bID Block ID of a page (ticket)
+     * @param int $bID Block ID
+     * @param int $tID Ticket ID
      * @param int $uID logged-in user
      * @param date $rsvp RSVPed dates
      * @param date $checkin checked-in dates
@@ -37,65 +38,65 @@ class MagnettyEvent {
 	  *
 	  * FUNCTION LISTS
 	  *
-	  * getRSVPstatus($bID, $uID)
+	  * getRSVPstatus($tID, $uID)
 	  *
-	  * getRSVPnum($bID)
-	  * getCancelnum($bID)
+	  * getRSVPnum($tID)
+	  * getCancelnum($tID)
 	  *
-	  * addRSVP($cID, $bID, $uID)
-	  * addWaitlist($cID, $bID, $uID)
-	  * checkinRSVP($bID, $uID)
-	  * paidRSVP($bID, $uID)
-	  * cancelRSVP($bID, $uID)
-	  * recoverRSVP($bID, $uID)
+	  * addRSVP($cID, $tID, $uID)
+	  * addWaitlist($cID, $tID, $uID)
+	  * checkinRSVP($tID, $uID)
+	  * paidRSVP($tID, $uID)
+	  * cancelRSVP($tID, $uID)
+	  * recoverRSVP($tID, $uID)
 	  *
-	  * getRSVPTicketList($bID)
-	  * getWaitList($bID)
-	  * getCancelTicketList($bID)
+	  * getRSVPTicketList($tID)
+	  * getWaitList($tID)
+	  * getCancelTicketList($tID)
 	  */
 
-    public static function getRSVPstatus($bID, $uID)
+    public static function getRSVPstatus($tID, $uID)
     {
         $db = Database::getActiveConnection();
-        $query = $db->GetRow('SELECT * from MagnettyEventAttend WHERE bID = ? AND uID = ?', array($bID, $uID));
+        $query = $db->GetRow('SELECT * from MagnettyEventAttend WHERE tID = ? AND uID = ?', array($tID, $uID));
         return $query;
     }
 
-    public static function getRSVPnum($bID)
+    public static function getRSVPnum($tID)
     {
         $db = Database::getActiveConnection();
         $nulldate = '0000-00-00 00:00:00';
-        $count1 = $db->GetOne('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND rsvp IS NOT NULL', array($bID));
+        $count1 = $db->GetOne('SELECT COUNT(*) from MagnettyEventAttend WHERE tID = ? AND rsvp IS NOT NULL', array($tID));
         $count1 = intval($count1);
-        $count2 = $db->GetOne('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND cancel IS NOT NULL', array($bID));
+        $count2 = $db->GetOne('SELECT COUNT(*) from MagnettyEventAttend WHERE tID = ? AND cancel IS NOT NULL', array($tID));
         $count2 = intval($count2);
-        //$count3 = $db->GetOne('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND waitlistcancel IS NOT NULL', array($bID));
+        //$count3 = $db->GetOne('SELECT COUNT(*) from MagnettyEventAttend WHERE tID = ? AND waitlistcancel IS NOT NULL', array($tID));
         //$count3 = intval($count3);
         //$count = $count1-$count2-$count3;
         $count = $count1-$count2;
         return $count;
     }
 
-    public static function getCancelnum($bID)
+    public static function getCancelnum($tID)
     {
         $db = Database::getActiveConnection();
-        $query = $db->GetAll('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND waitlistcancel IS NOT NULL', array($bID));
+        $query = $db->GetAll('SELECT COUNT(*) from MagnettyEventAttend WHERE tID = ? AND waitlistcancel IS NOT NULL', array($tID));
         return $query;
     }
 
-    public static function getWaitlistCancelnum($bID)
+    public static function getWaitlistCancelnum($tID)
     {
         $db = Database::getActiveConnection();
-        $query = $db->GetAll('SELECT COUNT(*) from MagnettyEventAttend WHERE bID = ? AND cancel IS NOT NULL', array($bID));
+        $query = $db->GetAll('SELECT COUNT(*) from MagnettyEventAttend WHERE tID = ? AND cancel IS NOT NULL', array($tID));
         return $query;
     }
 
-    public static function addRSVP($cID, $bID, $uID, $date)
+    public static function addRSVP($cID, $tID, $uID, $date)
     {
         $db = Database::getActiveConnection();
         $args = array(
             'cID' => $cID,
-            'bID' => $bID,
+            'tID' => $tID,
             'uID' => $uID,
             'rsvp' => $date,
             'waitlist' => null,
@@ -107,12 +108,12 @@ class MagnettyEvent {
         return;
     }
 
-    public static function addWaitlist($cID, $bID, $uID, $date)
+    public static function addWaitlist($cID, $tID, $uID, $date)
     {
         $db = Database::getActiveConnection();
         $args = array(
             'cID' => $cID,
-            'bID' => $bID,
+            'tID' => $tID,
             'uID' => $uID,
 			'rsvp' => null,
             'waitlist' => $date,
@@ -125,68 +126,68 @@ class MagnettyEvent {
         return;
     }
 
-    public static function checkinRSVP($bID, $uID, $date)
+    public static function checkinRSVP($tID, $uID, $date)
     {
         $db = Database::getActiveConnection();
         $data = array (
 	        'checkin' => $date,
         );
         $where = array (
-	        'bID' =>$bID,
+	        'tID' =>$tID,
 	        'uID' =>$uID,
         );
         $db->update('MagnettyEventAttend', $data, $where);
-        //$db-> update('MagnettyEventAttend SET checkin = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
+        //$db-> update('MagnettyEventAttend SET checkin = ?, WHERE tID = ? AND uID = ?', array($date, $tID, $uID));
         return;
     }
 
-    public static function paidRSVP($bID, $uID, $date)
+    public static function paidRSVP($tID, $uID, $date)
     {
         $db = Database::getActiveConnection();
         $data = array (
 	        'paid' => $date,
         );
         $where = array (
-	        'bID' =>$bID,
+	        'tID' =>$tID,
 	        'uID' =>$uID,
         );
         //$db-> update($table, $data, array('id' => 17));
-        //$db-> update('MagnettyEventAttend SET paid = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
+        //$db-> update('MagnettyEventAttend SET paid = ?, WHERE tID = ? AND uID = ?', array($date, $tID, $uID));
         $db->update('MagnettyEventAttend', $data, $where);
         return;
     }
 
-    public static function cancelRSVP($bID, $uID, $date)
+    public static function cancelRSVP($tID, $uID, $date)
     {
         $db = Database::getActiveConnection();
         $data = array (
 	        'cancel' => $date,
         );
         $where = array (
-	        'bID' =>$bID,
+	        'tID' =>$tID,
 	        'uID' =>$uID,
         );
         $db->update('MagnettyEventAttend', $data, $where);
-        //$db-> update('MagnettyEventAttend SET cancel = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
+        //$db-> update('MagnettyEventAttend SET cancel = ?, WHERE tID = ? AND uID = ?', array($date, $tID, $uID));
         return;
     }
 
-    public static function cancelWaitlistRSVP($bID, $uID, $date)
+    public static function cancelWaitlistRSVP($tID, $uID, $date)
     {
         $db = Database::getActiveConnection();
         $data = array (
 	        'waitlistcancel' => $date,
         );
         $where = array (
-	        'bID' =>$bID,
+	        'tID' =>$tID,
 	        'uID' =>$uID,
         );
         $db->update('MagnettyEventAttend', $data, $where);
-        //$db-> update('MagnettyEventAttend SET cancel = ?, WHERE bID = ? AND uID = ?', array($date, $bID, $uID));
+        //$db-> update('MagnettyEventAttend SET cancel = ?, WHERE tID = ? AND uID = ?', array($date, $tID, $uID));
         return;
     }
 
-    public static function recoverRSVP($bID, $uID, $date)
+    public static function recoverRSVP($tID, $uID, $date)
     {
         $db = Database::getActiveConnection();
         $null = null;
@@ -196,33 +197,41 @@ class MagnettyEvent {
 	        'cancel' => $null,
         );
         $where = array (
-	        'bID' =>$bID,
+	        'tID' =>$tID,
 	        'uID' =>$uID,
         );
         $db->update('MagnettyEventAttend', $data, $where);
         return;
     }
 
-    public static function getRSVPTicketList($bID)
+    public static function getTicketList($cID)
     {
         $db = Database::getActiveConnection();
-        $query = $db->GetAll('SELECT * from MagnettyEventAttend WHERE bID = ? AND cancel IS NULL ORDER BY sortOrder', array($this->bID));
+        $query = $db->GetAll('SELECT * from MagnettyEventAttend WHERE cID = ? AND cancel IS NULL ORDER BY sortOrder', array($this->tID));
         $this->set('rows', $query);
         return $query;
     }
 
-    public static function getWaitList($bID)
+    public static function getTicketRSVPList($tID)
     {
         $db = Database::getActiveConnection();
-        $query = $db->GetAll('SELECT * from MagnettyEventAttend WHERE bID = ? AND waitlist IS NOT NULL ORDER BY sortOrder', array($this->bID));
+        $query = $db->GetAll('SELECT * from MagnettyEventAttend WHERE tID = ? AND cancel IS NULL ORDER BY sortOrder', array($this->tID));
         $this->set('rows', $query);
         return $query;
     }
 
-    public static function getCancelTicketList($bID)
+    public static function getWaitList($tID)
     {
         $db = Database::getActiveConnection();
-        $query = $db->GetAll('SELECT * from MagnettyEventAttend WHERE bID = ? AND cancel IS NOT NULL ORDER BY sortOrder', array($this->bID));
+        $query = $db->GetAll('SELECT * from MagnettyEventAttend WHERE tID = ? AND waitlist IS NOT NULL ORDER BY sortOrder', array($this->tID));
+        $this->set('rows', $query);
+        return $query;
+    }
+
+    public static function getCancelTicketList($tID)
+    {
+        $db = Database::getActiveConnection();
+        $query = $db->GetAll('SELECT * from MagnettyEventAttend WHERE tID = ? AND cancel IS NOT NULL ORDER BY sortOrder', array($this->tID));
         $this->set('rows', $query);
         return $query;
     }
