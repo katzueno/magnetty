@@ -114,7 +114,7 @@ class Controller extends BlockController {
 */
 
     public function add() {
-		$this->set('tID' => $this->bID);
+		$this->set('tID', $this->bID);
 	}
 
     public function edit() {
