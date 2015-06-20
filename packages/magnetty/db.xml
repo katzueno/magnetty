@@ -8,7 +8,7 @@
         </field>
         <field name="cID" type="I">
         </field>
-        <field name="bID" type="I">
+        <field name="tID" type="I">
         </field>
         <field name="uID" type="I">
         </field>
@@ -18,13 +18,13 @@
         <field name="waitlistcancel" type="T"/>
         <field name="cancel" type="T"/>
         <field name="paid" type="T"/>
-        <index name="idx_cID">
+        <index name="cID">
             <col>cID</col>
         </index>
-        <index name="idx_bID">
-            <col>bID</col>
+        <index name="tID">
+            <col>tID</col>
         </index>
-        <index name="idx_uID">
+        <index name="uID">
             <col>uID</col>
         </index>
     </table>

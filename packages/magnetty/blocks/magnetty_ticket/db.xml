@@ -5,6 +5,10 @@
 			<key />
 			<unsigned />
 		</field>
+		<field name="tID" type="I">
+		</field>
+		<field name="cID" type="I">
+		</field>
 		<field name="ticketName" type="C" size="255">
 		</field>
 		<field name="ticketNum" type="I">
@@ -35,6 +39,12 @@
 		</field>
         <index name="bID">
             <col>bID</col>
+        </index>
+        <index name="tID">
+            <col>tID</col>
+        </index>
+        <index name="cID">
+            <col>cID</col>
         </index>
 	</table>
 </schema>
