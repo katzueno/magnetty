@@ -14,7 +14,7 @@ use Package;
 use Config;
 use View;
 use \Concrete\Core\Block\BlockController;
-use \Concrete\Package\Magnetty\Model\MagnettyEvent as MagnettyEvent;
+use \Concrete\Package\Magnetty\Src\MagnettyEvent\MagnettyEvent as MagnettyEvent;
 
 /**
  * Magnetty Event Ticket List Block
@@ -46,21 +46,21 @@ use \Concrete\Package\Magnetty\Model\MagnettyEvent as MagnettyEvent;
 	// 2-> Users can cancel RSVP but cannot re-register
 	// 3-> Users cannot cancel RSVP at all
  /**
-  * getRSVPstatus($bID, $uID)
+  * getRSVPstatus($tID, $uID)
   *
-  * getRSVPnum($bID)
-  * getCancelnum($bID)
+  * getRSVPnum($tID)
+  * getCancelnum($tID)
   *
-  * addRSVP($cID, $bID, $uID)
-  * addWaitlist($cID, $bID, $uID)
-  * checkinRSVP($bID, $uID)
-  * paidRSVP($bID, $uID)
-  * cancelRSVP($bID, $uID)
-  * recoverRSVP($bID, $uID)
+  * addRSVP($cID, $tID, $uID)
+  * addWaitlist($cID, $tID, $uID)
+  * checkinRSVP($tID, $uID)
+  * paidRSVP($tID, $uID)
+  * cancelRSVP($tID, $uID)
+  * recoverRSVP($tID, $uID)
   *
-  * getRSVPTicketList($bID)
-  * getWaitList($bID)
-  * getCancelTicketList($bID)
+  * getRSVPTicketList($tID)
+  * getWaitList($tID)
+  * getCancelTicketList($tID)
   */
 
 
@@ -84,7 +84,7 @@ class Controller extends BlockController {
     }
 
     public function getBlockTypeName() {
-        return t("Magnetty Ticket RSVP List");
+        return t("Magnetty RSVP List");
     }
 
 /*
@@ -103,7 +103,7 @@ class Controller extends BlockController {
 			'form-name' => t('Your form must have a name.'),
 			'complete-required' => t('Please complete all required fields.'),
 			'ajax-error' => t('AJAX Error.'),
-			'form-min-1' => t('Please add at least one question to your form.')			
+			'form-min-1' => t('Please add at least one question to your form.')
 		);
 	}
 */
@@ -154,21 +154,22 @@ class Controller extends BlockController {
 			throw new Exception($errorMsg . t('Error at the beginning of controller view'));
 		}
 		$cp = new Permissions($c);
-		$bID = $block->getBlockID();
+		$bID = $this->bID;
+		$tID = $this->tID;
 		$viewMode = '';
-		
+
 		// Loading Magnetty Models
 		$Magnetty = new MagnettyEvent ();
 		// Get the max number of tickets
 		$magnettyTicketNum = getTicketNum();
 		// Get the current number of tickets RSVPed
-		$magnettyTicketCount = $Magnetty->getRSVPnum($bID);
+		$magnettyTicketCount = $Magnetty->getRSVPnum($tID);
 
 		$u = new User();
 
 		$canViewToolbar = (isset($cp) && is_object($cp) && $cp->canViewToolbar());
 		if ($canViewToolbar) {
-			$viewMode = 'Admin';				
+			$viewMode = 'Admin';
 
 		} else if ($u->isRegistered()) {
 			$viewMode = 'Registered';
@@ -205,7 +206,7 @@ class Controller extends BlockController {
 		}
 		$post = $this->post();
 
-		if (!($post['bID'] && $post['uID'])) {
+		if (!($post['tID'] && $post['uID'])) {
 			return;
 		}
 
@@ -214,7 +215,7 @@ class Controller extends BlockController {
 		$c = Page::getCurrentPage();
 		$bID = $block->getBlockID();
 
-		if ($u->isRegistered() && $bID == $post['MagnettybID'] && $post['MagnettyuID'] == $uID ) {
+		if ($u->isRegistered() && $tID == $post['MagnettytID'] && $post['MagnettyuID'] == $uID ) {
 			// Loading Magnetty Models
 			$Magnetty = new MagnettyEvent ();
 
@@ -242,11 +243,11 @@ class Controller extends BlockController {
 				// In development
 				$emailStatus = 'Paid';
 				// Need to add recover function
-				
+
 			} else {
 				$emailStatus = 'Invalid';
 			}
-			
+
 			if ($emailStatus) {
 				$result = MagnettySendEmail($emailStatus);
 			} else {
@@ -260,9 +261,9 @@ class Controller extends BlockController {
 
     public function MagnettySendEmail($email)  {
     }
-     
+
     function duplicate($newBID) {
-	    
+
 	}
 
 

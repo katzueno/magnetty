@@ -5,6 +5,15 @@ defined('C5_EXECUTE') or die("Access Denied.");
 <legend><?php echo t('Basic Ticket Set-ups');?></legend>
 
 <div class="form-group">
+<?php
+$c = Page::getCurrentPage();
+$cID = $c->getCollectionID();
+$form->hidden('cID', $cID);
+$form->hidden('tID', $tID);
+ ?>
+</div>
+
+<div class="form-group">
 	<?php echo $form->label('ticketName', t('Ticket Name'))?>
 	<?php echo $form->text('ticketName', $ticketName, array('style'=>'width: 60%;')); ?>
 </div>

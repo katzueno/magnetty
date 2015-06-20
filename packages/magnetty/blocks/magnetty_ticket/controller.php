@@ -1,21 +1,22 @@
 <?php
 namespace Concrete\Package\Magnetty\Block\MagnettyTicket;
 
-use Loader;
 use Page;
-use Permissions;
+use Block;
 use BlockType;
 use User;
 use UserInfo;
 use Concrete\Core\Validation\CSRF\Token;
-use Route;
-use URL;
 use Exception;
 use Package;
-use Config;
+use Permissions;
+// use Loader;
+// use Route;
+// use URL;
+// use Config;
 use Core;
 use \Concrete\Core\Block\BlockController;
-use \Concrete\Package\Magnetty\Models\MagnettyEvent as MagnettyEvent;
+use \Concrete\Package\Magnetty\Src\MagnettyEvent\MagnettyEvent as MagnettyEvent;
 
 /**
  * Magnetty Event Ticket Block
@@ -27,7 +28,7 @@ use \Concrete\Package\Magnetty\Models\MagnettyEvent as MagnettyEvent;
  * @category   Social Networking
  * @package    Magnetty
  * @author     Katz Ueno <iam@katzueno.com>
- * @copyright  2014 Katz Ueno
+ * @copyright  2015 Katz Ueno
  * @license    concrete5 Marketplace Commercial Lisence
  */
 
@@ -47,21 +48,21 @@ use \Concrete\Package\Magnetty\Models\MagnettyEvent as MagnettyEvent;
 	// 2-> Users can cancel RSVP but cannot re-register
 	// 3-> Users cannot cancel RSVP at all
  /**
-  * getRSVPstatus($bID, $uID)
+  * getRSVPstatus($tID, $uID)
   *
-  * getRSVPnum($bID)
-  * getCancelnum($bID)
+  * getRSVPnum($tID)
+  * getCancelnum($tID)
   *
-  * addRSVP($cID, $bID, $uID)
-  * addWaitlist($cID, $bID, $uID)
-  * checkinRSVP($bID, $uID)
-  * paidRSVP($bID, $uID)
-  * cancelRSVP($bID, $uID)
-  * recoverRSVP($bID, $uID)
+  * addRSVP($cID, $tID, $uID)
+  * addWaitlist($cID, $tID, $uID)
+  * checkinRSVP($tID, $uID)
+  * paidRSVP($tID, $uID)
+  * cancelRSVP($tID, $uID)
+  * recoverRSVP($tID, $uID)
   *
-  * getRSVPTicketList($bID)
-  * getWaitList($bID)
-  * getCancelTicketList($bID)
+  * getRSVPTicketList($tID)
+  * getWaitList($tID)
+  * getCancelTicketList($tID)
   */
 
 
@@ -76,10 +77,10 @@ class Controller extends BlockController {
     protected $btCacheBlockOutput = true;
     protected $btCacheBlockOutputOnPost = true;
     protected $btCacheBlockOutputForRegisteredUsers = true;
-    
+
     private $debugMode = '1';
     private $errorMsg = 'Oops, something is wrong with the Magnetty Ticket Block. Please tell your webmaster the following error message: ';
-    
+
     /**
      * Used for localization. If we want to localize the name/description we have to include this
      */
@@ -107,10 +108,30 @@ class Controller extends BlockController {
 			'form-name' => t('Your form must have a name.'),
 			'complete-required' => t('Please complete all required fields.'),
 			'ajax-error' => t('AJAX Error.'),
-			'form-min-1' => t('Please add at least one question to your form.')			
+			'form-min-1' => t('Please add at least one question to your form.')
 		);
 	}
 */
+
+    public function add() {
+		$this->set('tID' => $this->bID);
+	}
+
+    public function edit() {
+	}
+
+    public function duplicate($newBID) {
+        parent::duplicate($newBID);
+		$db = Database::getActiveConnection();
+        $data = array (
+	        'cID' => Page::getCurrentPage()->getCollectionID(),
+	        'tID' => $newBID,
+        );
+        $where = array (
+	        'bID' => $newBID,
+        );
+		$db->update('btMagnettyTicket', $data, $where);
+	}
 
 	function getPackageDefaultSettings() {
 		$pkg = Package::getByHandle('magnetty');
@@ -155,37 +176,38 @@ class Controller extends BlockController {
     public function view() {
 	    $debugMode = $this->debugMode;
 		$errorMsg = t($this->errorMsg);
-	    
+
 		$c = Page::getCurrentPage();
 		$cID =  $c->getCollectionID();
 		if (!is_object($c)) {
 			throw new Exception($errorMsg . t('Error at the beginning of controller view'));
 		}
 		$cp = new Permissions($c);
-		//$bID;
 		$viewMode = '';
-		
+
 		$bID = $this->bID;
-		
+		$tID = $this->tID;
+
 		// Loading Magnetty Models
 		$Magnetty = new MagnettyEvent ();
 		// Get the max number of tickets
 		$magnettyTicketNum = $this->getTicketNum();
 		$magnettyTicketNum = intval($magnettyTicketNum);
 		// Get the current number of tickets RSVPed
-		$magnettyTicketCount = $Magnetty->getRSVPnum($bID);
+		$magnettyTicketCount = $Magnetty->getRSVPnum($tID);
 
 		$u = new User();
-		
-		 $nh = Loader::helper('navigation');
+
+		 $nh = Core::make('helper/navigation');
 		 $ticketURL = $nh->getCollectionURL($c);
-		
+
 		if ($debugMode) {
 			echo "<p><b>View Step 1: Initial Setup</b><br />";
 			echo 'TicketNum; '; var_dump($magnettyTicketNum); echo '<br />';
 			echo 'TicketRSVP; '; var_dump($magnettyTicketCount); echo '<br />';
 			echo 'ViewMode; '; var_dump($viewMode); echo '<br />';
 			echo 'bID; '; var_dump($bID); echo '<br />';
+			echo 'tID; '; var_dump($tID); echo '<br />';
 			echo 'cID; '; var_dump($cID); echo '<br />';
 			echo 'Status; '; var_dump($magnettyStatus); echo '<br />';
 			echo 'Date; '; echo Date('Y-m-d H:i:s'); echo '<br />';
@@ -195,7 +217,7 @@ class Controller extends BlockController {
 
 		$canViewToolbar = (isset($cp) && is_object($cp) && $cp->canViewToolbar());
 		if ($canViewToolbar) {
-			$viewMode = 'Admin';				
+			$viewMode = 'Admin';
 
 		} else if ($u->isRegistered()) {
 			$viewMode = 'Registered';
@@ -210,6 +232,7 @@ class Controller extends BlockController {
 			echo 'TicketRSVP; '; var_dump($magnettyTicketCount); echo '<br />';
 			echo 'ViewMode; '; var_dump($viewMode); echo '<br />';
 			echo 'bID; '; var_dump($bID); echo '<br />';
+			echo 'tID; '; var_dump($tID); echo '<br />';
 			echo 'cID; '; var_dump($cID); echo '<br />';
 			echo 'Status; '; var_dump($magnettyStatus); echo '<br />';
 			echo '</p>';
@@ -218,7 +241,7 @@ class Controller extends BlockController {
 		if ($viewMode == 'Registered' || $viewMode == 'Admin' ) {
 			$uID = $u->getUserID();
 
-			$magnettyStatus = $Magnetty->getRSVPstatus($bID, $uID);
+			$magnettyStatus = $Magnetty->getRSVPstatus($tID, $uID);
 
 			if ($debugMode) {
 				echo "<p><b>View Step 3: Get Current Status</b><br />";
@@ -226,6 +249,7 @@ class Controller extends BlockController {
 				echo 'TicketRSVP; '; var_dump($magnettyTicketCount); echo '<br />';
 				echo 'ViewMode; '; var_dump($viewMode); echo '<br />';
 				echo 'bID; '; var_dump($bID); echo '<br />';
+				echo 'tID; '; var_dump($tID); echo '<br />';
 				echo 'cID; '; var_dump($cID); echo '<br />';
 				echo 'Status; '; var_dump($magnettyStatus); echo '<br />';
 				echo '</p>';
@@ -256,6 +280,7 @@ class Controller extends BlockController {
 				echo 'TicketRSVP; '; var_dump($magnettyTicketCount); echo '<br />';
 				echo 'ViewMode; '; var_dump($viewMode); echo '<br />';
 				echo 'bID; '; var_dump($bID); echo '<br />';
+				echo 'tID; '; var_dump($tID); echo '<br />';
 				echo 'cID; '; var_dump($cID); echo '<br />';
 				echo 'Status; '; var_dump($magnettyStatus); echo '<br />';
 				echo 'RSVP: ' . $magnettyStatus['rsvp'] . '<br />';
@@ -268,20 +293,20 @@ class Controller extends BlockController {
 
 
 			$magnettyTicketAvailable = $magnettyTicketNum-$magnettyTicketCount;
-			
+
 			if ($viewMove == 'Registered') {
-				if ( $magnettyTicketAvailable < 1) {
+				if ( $magnettyTicketAvailable < 1 || $magnettyTicketAvailable == 0) {
 					$viewMode = 'Full';
 				}
 			}
-			
+
 			if (($viewMode == 'Cancelled') || ($viewMode == 'WaitlistCancelled') ) {
-				if ( $magnettyTicketAvailable < 1) {
-					$viewMode = 'Cancelled_Full';					
+				if ( $magnettyTicketAvailable < 1 || $magnettyTicketAvailable == 0) {
+					$viewMode = 'Cancelled_Full';
 				}
 
 			}
-		
+
 			if ($debugMode) {
 				echo "<p><b>View Step 5: Get Availabilty Check</b><br />";
 				echo 'TicketNum; '; var_dump($magnettyTicketNum); echo '<br />';
@@ -289,6 +314,7 @@ class Controller extends BlockController {
 				echo 'TicketAvailable; '; echo ($magnettyTicketAvailable); echo '<br />';
 				echo 'ViewMode; '; var_dump($viewMode); echo '<br />';
 				echo 'bID; '; var_dump($bID); echo '<br />';
+				echo 'tID; '; var_dump($tID); echo '<br />';
 				echo 'cID; '; var_dump($cID); echo '<br />';
 				echo 'Status; '; var_dump($magnettyStatus); echo '<br />';
 				echo 'RSVP: ' . $magnettyStatus['rsvp'] . '<br />';
@@ -325,7 +351,7 @@ class Controller extends BlockController {
 			// cancel
 			// recover
 			// pay (TBA)
-	
+
 		// Email Flag: $email
 			// RSVPed
 			// Waitlist
@@ -342,7 +368,7 @@ class Controller extends BlockController {
 			return;
 		}
 		$post = $this->post();
-	
+
 		if ($debugMode) {
 			echo "<p><b>Action Step 2: Has post data</b><br />";
 			echo 'post; '; var_dump($post); echo '<br />';
@@ -352,95 +378,98 @@ class Controller extends BlockController {
 		$token = new Token();
 		$tokenSubmitted = h($post['token']);
 		if ($tokenSubmitted == $token->validate('rsvp', $tokenSubmitted)) {
-	
-			if (!($post['MagnettybID'] && $post['MagnettyuID'])) {
+
+			if (!($post['MagnettytID'] && $post['MagnettyuID'])) {
 				return;
 			}
-	
+
 			if ($debugMode) {
 				echo "<p><b>Action Step 3: Has correct post </b><br />";
 				echo 'post; '; var_dump($post); echo '<br />';
-				echo 'MagnettybID; '; echo $post['MagnettybID']; echo '<br />';
+				echo 'MagnettytID; '; echo $post['MagnettytID']; echo '<br />';
 				echo 'MagnettyuID; '; echo $post['MagnettyuID']; echo '<br />';
 				echo '</p>';
 			}
 			$u = new User();
 			$uID = $u->getUserID();
 			$bID = $this->bID;
+			$tID = $this->tID;
 			$c = Page::getCurrentPage();
 			$cID =  $c->getCollectionID();
-	
+
 			if ($debugMode) {
 				echo "<p><b>Action Step 4: Basic info such as uID, bID, cID</b><br />";
 				echo 'post; '; var_dump($post); echo '<br />';
-				echo 'MagnettybID; '; echo $post['MagnettybID']; echo '<br />';
+				echo 'MagnettytID; '; echo $post['MagnettytID']; echo '<br />';
 				echo 'MagnettyuID; '; echo $post['MagnettyuID']; echo '<br />';
 				echo 'uID; '; echo $uID; echo '<br />';
 				echo 'bID; '; echo $bID; echo '<br />';
+				echo 'tID; '; var_dump($tID); echo '<br />';
 				echo 'cID; '; echo $cID; echo '<br />';
 				echo '</p>';
 			}
-	
-			if ($u->isRegistered() && $bID == $post['MagnettybID'] && $post['MagnettyuID'] == $uID ) {
-	
+
+			if ($u->isRegistered() && $tID == $post['MagnettytID'] && $post['MagnettyuID'] == $uID ) {
+
 				// Loading Magnetty Models
 				$Magnetty = new MagnettyEvent ();
-	
+
 				// Get cuurent date and time
 				$date = Date('Y-m-d H:i:s');
-				
-				$magnettyStatus = $Magnetty->getRSVPstatus($bID, $uID);
-	
-	
+
+				$magnettyStatus = $Magnetty->getRSVPstatus($tID, $uID);
+
+
 				if ($post['MagnettyStatus']=='rsvp') {
-	
-	
+
+
 					//
 					//
 					//  I Should Add DOUBLE RSVP CHECK
 					//
 					//
 					//
-	
+
 					// Get the max number of tickets
 					$magnettyTicketNum = $this->getTicketNum();
 					$magnettyTicketNum = intval($magnettyTicketNum);
 					// Get the current number of tickets RSVPed
-					$magnettyTicketCount = $Magnetty->getRSVPnum($bID);
-	
+					$magnettyTicketCount = $Magnetty->getRSVPnum($tID);
+
 					if ( $magnettyTicketCount >= $magnettyTicketNum) {
-						$Magnetty->addWaitlist($cID, $bID, $uID, $date);
+						$Magnetty->addWaitlist($cID, $tID, $uID, $date);
 						$emailStatus = 'Waitlist';
 					} else {
-						$Magnetty->addRSVP($cID, $bID, $uID, $date);
+						$Magnetty->addRSVP($cID, $tID, $uID, $date);
 						$emailStatus = 'RSVPed';
 					}
-	
+
 				} else if ($post['MagnettyStatus']=='cancel') {
-					$Magnetty->cancelRSVP($bID, $uID, $date);
+					$Magnetty->cancelRSVP($tID, $uID, $date);
 					$emailStatus = 'Cancelled';
 					// Need to add waitlist recover function
-	
+
 				} else if ($post['MagnettyStatus']=='cancelwaitlist') {
-					$Magnetty->cancelWaitlistRSVP($bID, $uID, $date);
+					$Magnetty->cancelWaitlistRSVP($tID, $uID, $date);
 					$emailStatus = 'WaitlistCancelled';
-	
+
 				} else if ($post['MagnettyStatus']=='paid') {
 					// In development
 					$emailStatus = 'Paid';
 					// Need to add recover function
-					
+
 				} else {
 					$emailStatus = 'Invalid';
 				}
-				
+
 				if ($debugMode) {
 					echo "<p><b>Action Step 5: Email Flag</b><br />";
 					echo 'post; '; var_dump($post); echo '<br />';
-					echo 'MagnettybID; '; echo $post['MagnettybID']; echo '<br />';
+					echo 'MagnettytID; '; echo $post['MagnettytID']; echo '<br />';
 					echo 'MagnettyuID; '; echo $post['MagnettyuID']; echo '<br />';
 					echo 'uID; '; echo $uID; echo '<br />';
 					echo 'bID; '; echo $bID; echo '<br />';
+					echo 'tID; '; var_dump($tID); echo '<br />';
 					echo 'cID; '; echo $cID; echo '<br />';
 					echo 'emailStatus: '; echo $emailStatus; echo '<br />';
 					echo '</p>';
@@ -452,7 +481,7 @@ class Controller extends BlockController {
 				} else {
 					throw new Exception($errorMsg . t('Error while action_rsvp'));
 				}
-	
+
 			} else {
 				if ($debugMode) {
 					echo '<p><b>Action Step 4: The the actions was for different block</b></p>';
@@ -495,10 +524,13 @@ class Controller extends BlockController {
 		$c = Page::getCurrentPage();
 		$pkgSettings = $this->getPackageDefaultSettings();
 
+		$bID = $this->bID;
+		$tID = $this->tID;
+
 		$u = new User();
 		$uID = $u->getUserID();
 		$ui = UserInfo::getByID($uID);
-		
+
 		if (!$ui){
 			throw new Exception($errorMsg . t('Error while sending email at very first initial set-up.'));
 		}
@@ -519,15 +551,15 @@ class Controller extends BlockController {
 		if (!$userName){
 			throw new Exception($errorMsg . t('Error while setting userName.'));
 		}
-		
+
 		$ticketName = $this->getTicketName();
 		if (!$ticketName) {
 			throw new Exception($errorMsg . t('TicketName is not set'));
 		}
 
-		
 
-		 $nh = Loader::helper('navigation');
+
+		 $nh = Core::make('helper/navigation');
 		 $ticketURL = $nh->getCollectionURL($c);
 		if (!$ticketURL){
 			throw new Exception($errorMsg . t('Error while setting ticketURL.'));
@@ -538,6 +570,7 @@ class Controller extends BlockController {
 			echo "<p><b>Email Step 1: Iniial Info related info</b><br />";
 			echo 'uID; '; echo $uID; echo '<br />';
 			echo 'bID; '; echo $bID; echo '<br />';
+			echo 'tID; '; var_dump($tID); echo '<br />';
 			echo 'toEmail; '; echo $toEmail; echo '<br />';
 			echo 'userName: '; echo $userName; echo '<br />';
 			echo 'ticketName: '; echo $ticketName; echo '<br />';
@@ -547,7 +580,7 @@ class Controller extends BlockController {
 
 
 
-		// PREPARE TO SEND EMAIL - INITIAL SETTING		
+		// PREPARE TO SEND EMAIL - INITIAL SETTING
 		if (!$pkgSettings['adminEmail']) {
 			$adminUser = UserInfo::getByID(USER_SUPER_ID);
 			if (is_object($adminUser)) {
@@ -580,6 +613,7 @@ class Controller extends BlockController {
 		if ($debugMode) {
 			echo "<p><b>Email Step 2: Setup FROM related info</b><br />";
 			echo 'uID; '; echo $uID; echo '<br />';
+			echo 'tID; '; $tID; echo '<br />';
 			echo 'bID; '; echo $bID; echo '<br />';
 			echo 'fromEmail; '; echo $fromEmail; echo '<br />';
 			echo 'replytoEmail; '; echo $replytoEmail; echo '<br />';
@@ -591,14 +625,14 @@ class Controller extends BlockController {
 			echo '</p>';
 		}
 
-		$mh->to($toEmail); 
-		$mh->from($fromEmail); 
-		$mh->replyto($replytoEmail); 		
+		$mh->to($toEmail);
+		$mh->from($fromEmail);
+		$mh->replyto($replytoEmail);
 
 		// Prepare to send RSVP Confirmation Email.
-		
+
 		if ($email == 'RSVPed') {
-			
+
 			$emailSubject = $this->getEmailConfirmationSubject();
 			if (!$emailSubject) {
 				$emailSubject = t('RSVP Confirmation: ') . $this->getTicketName();
@@ -606,16 +640,16 @@ class Controller extends BlockController {
 			if (!$emailSubject) {
 				throw new Exception($errorMsg . t('RSVP Confirmation Email Subject is not set'));
 			}
-			
+
 			$emailBody = $this->getEmailConfirmationBody();
 			if (!$emailBody) {
 				$emailBody = $pkgSettings['emailConfirmationText'];
 			}
 			if (!$emailBody) {
 				throw new Exception($errorMsg . t('RSVP Confirmation Email Body is not set'));
-			}			
+			}
 			$emailTemplate = 'magnetty_event_rsvp';
-			
+
 		// Prepare to send Waitlist Confirmation Email.
 
 		} else if ($email == 'Waitlist') {
@@ -627,17 +661,17 @@ class Controller extends BlockController {
 			if (!$emailSubject) {
 				throw new Exception($errorMsg . t('Waitlist Confirmation Email Subject is not set'));
 			}
-			
+
 			$emailBody = $this->getEmailWaitlistBody();
 			if (!$emailBody) {
 				$emailBody = $pkgSettings['emailWaitlistText'];
 			}
 			if (!$emailBody) {
 				throw new Exception($errorMsg . t('Confirmation Email Body is not set'));
-			}			
+			}
 			$emailTemplate = 'magnetty_event_waitlist';
 
-			
+
 		// Prepare to send Cancelled Confirmation Email.
 
 		} else if ($email == 'Canceled') {
@@ -649,14 +683,14 @@ class Controller extends BlockController {
 			if (!$emailSubject) {
 				throw new Exception($errorMsg . t('Cancel Confirmation Email Subject is not set'));
 			}
-			
+
 			$emailBody = $this->getEmailCancellationBody();
 			if (!$emailBody) {
 				$emailBody = $pkgSettings['emailCancelText'];
 			}
 			if (!$emailBody) {
 				throw new Exception($errorMsg . t('Cancel Email Body is not set'));
-			}			
+			}
 			$emailTemplate = 'magnetty_event_cancel';
 
 
@@ -671,19 +705,19 @@ class Controller extends BlockController {
 			if (!$emailSubject) {
 				throw new Exception($errorMsg . t('Waitlist Cancel Confirmation Email Subject is not set'));
 			}
-			
+
 			$emailBody = $this->getEmailCancellationBody();
 			if (!$emailBody) {
 				$emailBody = $pkgSettings['emailWaitlistCancelText'];
 			}
 			if (!$emailBody) {
 				throw new Exception($errorMsg . t('Waitlist Cancel Email Body is not set'));
-			}			
+			}
 			$emailTemplate = 'magnetty_event_waitlist_cancel';
 
 
 		// Prepare to send Waitlist_RSVP Confirmation Email.
-		
+
 		} else if ($email == 'Waitlist_RSVPed') {
 
 			$emailSubject = $this->getEmailConfirmationSubject();
@@ -693,7 +727,7 @@ class Controller extends BlockController {
 			if (!$emailSubject) {
 				throw new Exception($errorMsg . t('RSVP Confirmation Email Subject is not set'));
 			}
-			
+
 			$emailBody = $this->getEmailConfirmationBody();
 			if (!$emailBody) {
 				$emailBody = $pkgSettings['emailConfirmationText'];
@@ -706,7 +740,7 @@ class Controller extends BlockController {
 
 
 		// Prepare to send Paid Confirmation Email.
-		
+
 		} else if ($email == 'Paid') {
 
 		// To be added
@@ -714,11 +748,11 @@ class Controller extends BlockController {
 		}
 
 		// Email Body Sanitize & HTML body
-		$th = Loader::helper('text');
+		$th = Core::make('helper/text');
 		$emailBody = h($emailBody);
 		$emailHTMLBody = $th->autolink($emailBody, 1);
 		$emailHTMLBody = nl2br($emailBody);
-				
+
 		// Load Mail Template and send an email.
 
 		if (!$emailBody) {
@@ -726,16 +760,15 @@ class Controller extends BlockController {
 			throw new Exception($emailTemplate . t('Cancel Email Body is not set'));
 		}
 
-		
+
 		$mh->addParameter('emailSubject', $emailSubject);
-		$mh->addParameter('ticketName', $ticketName); 
-		$mh->addParameter('ticketURL', $ticketURL); 
-		$mh->addParameter('siteName', $siteName); 
-		$mh->addParameter('userName', $userName); 
+		$mh->addParameter('ticketName', $ticketName);
+		$mh->addParameter('ticketURL', $ticketURL);
+		$mh->addParameter('siteName', $siteName);
+		$mh->addParameter('userName', $userName);
 		$mh->addParameter('emailBodyPlain', $emailBody);
 		$mh->addParameter('emailBodyHTML', $emailHTMLBody);
 		$mh->load($emailTemplate, 'magnetty');
 		@$mh->sendMail();
 	}
-
 }
