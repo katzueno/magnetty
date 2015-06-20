@@ -34,6 +34,7 @@ sitemap.xml
 packages/proevents/*
 packages/email_list_signup/*
 packages/entity_example/*
+packages/open_graph_tags_lite/*
 
 # Ignore hook log
 deployments.php
