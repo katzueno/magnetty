@@ -31,10 +31,8 @@ error_log
 sitemap.xml
 
 # Packages
-packages/proevents/*
-packages/email_list_signup/*
-packages/entity_example/*
-packages/open_graph_tags_lite/*
+/packages/*
+!/packages/magnetty/*
 
 # Ignore hook log
 deployments.php
